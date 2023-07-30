@@ -33,7 +33,7 @@ struct Node {
   vx_id vx;
   bool isGoal = false;
   std::shared_ptr<Node> parent;
-  bool operator<(const Node& other) const {
+  bool operator<(const Node other) const {
     return f < other.f;
   }
 };
@@ -114,6 +114,7 @@ struct Obstacle {
     Vertex vx;
     for(int i=0; i<4; i++){
       vx.id = vx_id_map[i].first;
+      vx.isVisible = false;
       vx.position[0] = obs_position[0]
                     + vx_id_map[i].second[0] * current_dim_x / 2 * cos_heading
                     + vx_id_map[i].second[1] * current_dim_y / 2 * sin_heading;

@@ -1,7 +1,7 @@
 #include "oal/path_planner.hpp"
 
 // Given some obstacle vertexes, find the intercept points
-void path_planner::ComputeInterceptPoints(const Obstacle& obstacle, Eigen::Vector2d vehicle_position, std::vector<Vertex>& vertexes){
+void path_planner::ComputeInterceptPoints(const Obstacle& obstacle, const Eigen::Vector2d& vehicle_position, std::vector<Vertex>& vertexes){
   for (Vertex& vertex : vertexes){
     if(vertex.isVisible){
       // algorithm described in
@@ -18,8 +18,8 @@ void path_planner::ComputeInterceptPoints(const Obstacle& obstacle, Eigen::Vecto
       }
 
       Eigen::Vector2d intercept_point_position;
-      intercept_point_position[0] = v_info_.speed*cos(theta)*t;
-      intercept_point_position[1] = v_info_.speed*sin(theta)*t;
+      intercept_point_position[0] = v_info_.position[0]+v_info_.speed*cos(theta)*t;
+      intercept_point_position[1] = v_info_.position[1]+v_info_.speed*sin(theta)*t;
 
       vertex.intercept_point.position = intercept_point_position;
       vertex.intercept_point.time = t;
@@ -37,19 +37,18 @@ bool path_planner::CheckCollision(Node start, Node goal){
   goal3d[2] = path.norm()/v_info_.speed;
   path = goal3d - start3d;
 
-  std::vector<std::vector<Eigen::Vector3d>> bb_vectors(4); // 4 couples of vertexes to check
+  //std::vector<std::vector<int>> bb_vectors_couples(4); // 4 couples of vertexes to check
   std::vector<Vertex> vxs;
   std::vector<Eigen::Vector3d> vxs_position3d;
 
   for (Obstacle obs : obss_info_.obstacles){
-    if(!goal.isGoal){
-      if(obs.id_ == start.obs || obs.id_ == goal.obs ){
+    if(!goal.isGoal){ // because goal.obs is defined only for every node but the final goal (I could just set goal.obs to "")
+      if(obs.id_ == goal.obs ){
         continue;
       }
-    }else if(obs.id_ == start.obs){
-      continue;
     }
 
+    // what id speed is 0 ????
     // Compute obstacle direction in x-y-t
     Eigen::Vector3d bb_direction;
     bb_direction[0] = obs.speed_*cos(obs.heading_);
@@ -57,38 +56,52 @@ bool path_planner::CheckCollision(Node start, Node goal){
     bb_direction[2] = 1;
     //bb_direction.normalize(); no, because multiplied by t* it returns the position at time t*
 
-
     obs.ComputeVertexes(start.position, start.time, vxs);
 
     for(Vertex vx : vxs){
       Eigen::Vector3d vx_pos(vx.position[0], vx.position[1], 0);
       vxs_position3d.push_back(vx_pos);
     }
-    // Each of the bb's 4 sides are defined by their vxs
-    bb_vectors.push_back({vxs_position3d[0], vxs_position3d[2]});  //FR,RR
-    bb_vectors.push_back({vxs_position3d[0], vxs_position3d[3]});  //FR,RL
-    bb_vectors.push_back({vxs_position3d[1], vxs_position3d[2]});  //FL,RR
-    bb_vectors.push_back({vxs_position3d[1], vxs_position3d[3]});  //FL,RL
 
-    // // Each of the bb's 4 sides are defined by their vxs
-    // bb_vectors[0] = {0, 2};  //FR,RR
-    // bb_vectors[1] = {vxs_position3d[0], vxs_position3d[3]};  //FR,RL
-    // bb_vectors[2] = {vxs_position3d[1], vxs_position3d[2]};  //FL,RR
-    // bb_vectors[3] = {vxs_position3d[1], vxs_position3d[3]};  //FL,RL
+    for( int i=0;i<4;i++){
+      int idx1, idx2;
+      switch (i) {
+        case 0:
+          idx1 = 0;
+          idx2 = 2;
+          break;
+        case 1:
+          idx1 = 0;
+          idx2 = 3;
+          break;
+        case 2:
+          idx1 = 1;
+          idx2 = 2;
+          break;
+        case 3:
+          idx1 = 1;
+          idx2 = 3;
+          break;
+      }
 
+      // if the path starts from the current obs, do not check the sides of the departing vx
+      if(obs.id_ == start.obs && (start.vx == idx1 || start.vx == idx2)){
+        continue;
+      }
 
-
-    for (std::vector<Eigen::Vector3d> bb_vector : bb_vectors){   // for each side of the bb
+      Eigen::Vector3d bb_vector1, bb_vector2;
+      bb_vector1 = vxs_position3d[idx1];
+      bb_vector2 = vxs_position3d[idx2];
 
       // Get the plane normal
-      Eigen::Vector3d planeNormal = bb_direction.cross(bb_vector[0] - bb_vector[1]);
+      Eigen::Vector3d planeNormal = bb_direction.cross(bb_vector1 - bb_vector2);
       planeNormal.normalize();
 
       // if the plane and the path are //
       if (planeNormal.dot(path) == 0) continue; //do we need tolerance here?
 
       // Compute % of path where the collision happens (from http://paulbourke.net/geometry/pointlineplane/)
-      double u = planeNormal.dot( bb_vector[0] - start3d ) / planeNormal.dot(path);
+      double u = planeNormal.dot( bb_vector1 - start3d ) / planeNormal.dot(path);
 
     	if (u>=0 && u<=1){ // intersect_point between start and goal
         // what about u==1 ? means the collision happens when reaching the vertex,
@@ -96,12 +109,14 @@ bool path_planner::CheckCollision(Node start, Node goal){
 
         // Get collision time and point
         Eigen::Vector3d doable_path = path * u; // Part of the path prior the collision
+        doable_path[2] = 0;
         double collision_time = doable_path.norm()/v_info_.speed; // When the collision happens
+        doable_path[2] = collision_time;
         Eigen::Vector3d collision_point = start3d + doable_path; // Where the collision happens
 
         // Get vertexes at time t*
-        Eigen::Vector3d vertex1_position = bb_vector[0] + bb_direction * collision_time;
-        Eigen::Vector3d vertex2_position = bb_vector[1] + bb_direction * collision_time;
+        Eigen::Vector3d vertex1_position = bb_vector1 + bb_direction * collision_time;
+        Eigen::Vector3d vertex2_position = bb_vector2 + bb_direction * collision_time;
 
         // Check if point is inside those two vertexes
         Eigen::Vector3d P1 = collision_point - vertex1_position;
@@ -133,6 +148,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
   goal.position = goal_position;
   goal.isGoal = true;
   Node current;
+  //Node last_wp;
   // Run until every node is studied
   while(!nodes_set.empty()){
     current = *nodes_set.begin();
@@ -140,6 +156,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
 
     if (CheckCollision(current, goal)){
       found = true;
+      //last_wp = current;
       break;
     }
 
@@ -153,20 +170,23 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       // Check collision for every one of them
       for (const Vertex& vx : vertexes)
       {
-        // Create new Node (still to check for collision)
-        //shared_ptr<Node> newnode(new Node());
-        Node newnode;
-        newnode.position = vx.intercept_point.position;
-        newnode.obs = obs.id_;
-        newnode.vx = vx.id;
-        newnode.time = current.time + vx.intercept_point.time;
-        if (CheckCollision(current, newnode)){
-          // Save new node
-          UpdateCosts(newnode, current.g, goal_position, vx.intercept_point.time);
-          std::shared_ptr<Node> parent = std::shared_ptr<Node>(&current, [](Node*) {});
-          newnode.parent = parent;
-          //current.children.push_back(newnode);
-          nodes_set.insert(newnode);
+        if(vx.isVisible) {
+          // Create new Node (still to check for collision)
+          //shared_ptr<Node> newnode(new Node());
+          Node newnode;
+          newnode.position = vx.intercept_point.position;
+          newnode.obs = obs.id_;
+          newnode.vx = vx.id;
+          newnode.time = current.time + vx.intercept_point.time;
+          if (CheckCollision(current, newnode)) {
+            // Save new node
+            UpdateCosts(newnode, current.g, goal_position, vx.intercept_point.time);
+            std::shared_ptr<Node> parent = std::make_shared<Node>(current);
+            //std::shared_ptr<Node> parent = std::shared_ptr<Node>(current, [](const Node&) {});
+            newnode.parent = parent;
+            //current.children.push_back(newnode);
+            nodes_set.insert(newnode);
+          }
         }
       }
     }
@@ -175,11 +195,15 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
   if (found){
     // Build path from goal to initial position
     Waypoint wp;
-    while(current.parent!=nullptr){
-      wp.position = current.position;
-      wp.time = current.time;
+    Node* it = &current;
+    while(it->parent!=nullptr){
+      std::cout << "Obs: " << it->obs << std::endl;
+      std::cout << "Vx: " << it->vx << std::endl;
+      std::cout << "Time: " << it->time << std::endl;
+      wp.position = it->position;
+      wp.time = it->time;
       waypoints.push(wp);
-      current = *current.parent;
+      it = &*it->parent;
     }
     return true;
   }

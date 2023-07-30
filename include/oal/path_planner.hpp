@@ -30,7 +30,7 @@ private:
   //void SetVisibleVertexes();
 
   // Given some obstacle vertexes, find the intercept points
-  void ComputeInterceptPoints(const Obstacle& obstacle, Eigen::Vector2d vehicle_position, std::vector<Vertex>& vertexes);
+  void ComputeInterceptPoints(const Obstacle& obstacle, const Eigen::Vector2d& vehicle_position, std::vector<Vertex>& vertexes);
 
   // Check if the path between start and goal collide with any obstacle
   bool CheckCollision(Node start, Node goal);
