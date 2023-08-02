@@ -87,15 +87,15 @@ struct Obstacle {
     double dist_y = abs(bodyObs_obs_vehicle[1]);
     // Choose the bounding box dimension depending on the obs-vehicle distance
     double current_dim_x, current_dim_y;
-    if (dist_x > dim_x_ * max_bb_ratio_ && dist_y > dim_y_ * max_bb_ratio_){
-      // Set maximum b_box_dim if distance greater than maximum
-      current_dim_x = dim_x_ * max_bb_ratio_;
-      current_dim_y = dim_y_ * max_bb_ratio_;
-    }else if (dist_x <= dim_x_ * safety_bb_ratio_ || dist_y <= dim_y_ * safety_bb_ratio_){
+    if (dist_x <= dim_x_ * safety_bb_ratio_ && dist_y <= dim_y_ * safety_bb_ratio_) {
       // Set safety b_box_dim if distance lesser than safety
       current_dim_x = dim_x_ * safety_bb_ratio_;
       current_dim_y = dim_y_ * safety_bb_ratio_;
-    }else{
+    }else if (dist_x > dim_x_ * max_bb_ratio_ || dist_y > dim_y_ * max_bb_ratio_){
+      // Set maximum b_box_dim if distance greater than maximum
+      current_dim_x = dim_x_ * max_bb_ratio_;
+      current_dim_y = dim_y_ * max_bb_ratio_;
+    }else {
        // Set b_box_dim according to distance
       current_dim_x = dim_x_ + dist_x;
       current_dim_y = dim_y_ + dist_y;

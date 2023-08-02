@@ -63,6 +63,10 @@ bool path_planner::CheckCollision(Node start, Node goal){
       vxs_position3d.push_back(vx_pos);
     }
 
+    if(start.obs == "1" && goal.obs == "2"){
+      int stop = 1;
+    }
+
     for( int i=0;i<4;i++){
       int idx1, idx2;
       switch (i) {
@@ -72,15 +76,15 @@ bool path_planner::CheckCollision(Node start, Node goal){
           break;
         case 1:
           idx1 = 0;
-          idx2 = 3;
+          idx2 = 1;
           break;
         case 2:
-          idx1 = 1;
+          idx1 = 3;
           idx2 = 2;
           break;
         case 3:
-          idx1 = 1;
-          idx2 = 3;
+          idx1 = 3;
+          idx2 = 1;
           break;
       }
 
@@ -132,6 +136,17 @@ bool path_planner::CheckCollision(Node start, Node goal){
 
 // Compute the path to reach the goal
 bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<Waypoint>& waypoints){
+
+  // Log
+  //std::stringstream ss;
+  //ss << "log_goal_" << goal_position(1)  << "_" << goal_position(2) << ".txt";
+  if(logFile_.is_open()){
+    logFile_.close();
+  }
+  logFile_.open("log.txt",std::ofstream::trunc);
+  logFile_ << "Start_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
+  logFile_ << "Goal_" << goal_position(0) << "_" << goal_position(1) << std::endl;
+
   bool found = false;
   // set of viable nodes, ordered by total cons (ascending)
   std::multiset<Node> nodes_set;
@@ -170,7 +185,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       // Check collision for every one of them
       for (const Vertex& vx : vertexes)
       {
-        if(vx.isVisible) {
+        if(vx.isVisible && !(current.obs == obs.id_ && current.vx == vx.id)) {
           // Create new Node (still to check for collision)
           //shared_ptr<Node> newnode(new Node());
           Node newnode;
@@ -196,15 +211,61 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
     // Build path from goal to initial position
     Waypoint wp;
     Node* it = &current;
+
+    // Log
+    logFile_ << "Time_" << current.f << std::endl;
+    logFile_ << "Waypoint_" << goal_position(0) << "_" << goal_position(1) << std::endl;
+    for (Obstacle& obs : obss_info_.obstacles) {
+      logFile_ << "Obs_" << obs.id_ << std::endl;
+      logFile_ << "Heading_" << obs.heading_ << std::endl;
+      std::vector<Vertex> vertexes;
+      obs.ComputeVertexes(goal_position, current.f, vertexes);
+      for (const Vertex &vx: vertexes) {
+        logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
+      }
+      logFile_ << "-" << std::endl;
+    }
+
     while(it->parent!=nullptr){
-      std::cout << "Obs: " << it->obs << std::endl;
-      std::cout << "Vx: " << it->vx << std::endl;
-      std::cout << "Time: " << it->time << std::endl;
+      //std::cout << "Obs: " << it->obs << std::endl;
+      //std::cout << "Vx: " << it->vx << std::endl;
+      //std::cout << "Time: " << it->time << std::endl;
       wp.position = it->position;
       wp.time = it->time;
       waypoints.push(wp);
       it = &*it->parent;
+
+      // Log
+      logFile_ << "Time_" << wp.time << std::endl;
+      logFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
+      for (Obstacle& obs : obss_info_.obstacles) {
+        logFile_ << "Obs_" << obs.id_ << std::endl;
+        logFile_ << "Heading_" << obs.heading_ << std::endl;
+        std::vector<Vertex> vertexes;
+        obs.ComputeVertexes(it->position, it->time, vertexes);
+        for (const Vertex &vx: vertexes) {
+          logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
+        }
+        logFile_ << "-" << std::endl;
+      }
+      //logFile_ << "---" << std::endl;
     }
+
+    // Log
+    logFile_ << "Time_" << "0" << std::endl;
+    logFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
+    for (Obstacle& obs : obss_info_.obstacles) {
+      logFile_ << "Obs_" << obs.id_ << std::endl;
+      logFile_ << "Heading_" << obs.heading_ << std::endl;
+      std::vector<Vertex> vertexes;
+      obs.ComputeVertexes(v_info_.position, 0, vertexes);
+      for (const Vertex &vx: vertexes) {
+        logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
+      }
+      logFile_ << "-" << std::endl;
+    }
+
+
     return true;
   }
   return false;

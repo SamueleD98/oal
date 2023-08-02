@@ -1,6 +1,8 @@
 #ifndef PATH_PLANNER_HPP
 #define PATH_PLANNER_HPP
 
+#include <iostream>
+#include <fstream>
 //#include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 //#include "ctrl_toolbox/DataStructs.h"
@@ -18,6 +20,7 @@ class path_planner {
 private:
   VehicleInfo v_info_;
   ObstaclesInfo obss_info_;
+  std::ofstream logFile_;
 
   // Compute the costs of a newly created Node,
   //  depending on the time to reach the last node, goal position and time shift wrt last node

@@ -17,12 +17,13 @@ int main(int, char**)
   obs1.id_ = "1";
   Eigen::Vector2d position1 = {10,3};
   obs1.position_ = position1;
-  obs1.heading_ = 2;
+  obs1.heading_ = 1;
   obs1.speed_ = 0;
   obs1.dim_x_ = 0.1;
   obs1.dim_y_ = 0.1;
+
   obs2.id_ = "2";
-  Eigen::Vector2d position2 = {10,7};
+  Eigen::Vector2d position2 = {10.13,4.1};
   obs2.position_ = position2;
   obs2.heading_ = 0;
   obs2.speed_ = 0;
@@ -31,7 +32,7 @@ int main(int, char**)
 
   ObstaclesInfo obss_info;
   obss_info.obstacles.push_back(obs1);
-  //obss_info.obstacles.push_back(obs2);
+  obss_info.obstacles.push_back(obs2);
 
   path_planner planner(v_info, obss_info);
 
