@@ -6,5 +6,4 @@ The build tool used for this project is CMake. To build and install the project 
 
     $ mkdir build
     $ cd build
-    $ cmake ..
-    $ sudo make install
+    $ cmake --build ./ --target oal_test -j 6
