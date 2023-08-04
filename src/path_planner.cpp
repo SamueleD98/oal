@@ -18,8 +18,11 @@ void path_planner::ComputeInterceptPoints(const Obstacle& obstacle, const Eigen:
       }
 
       Eigen::Vector2d intercept_point_position;
-      intercept_point_position[0] = v_info_.position[0]+v_info_.speed*cos(theta)*t;
-      intercept_point_position[1] = v_info_.position[1]+v_info_.speed*sin(theta)*t;
+      intercept_point_position[0] = vehicle_position[0]+v_info_.speed*cos(theta)*t;
+      intercept_point_position[1] = vehicle_position[1]+v_info_.speed*sin(theta)*t;
+      if(intercept_point_position[1] <1){
+        int afsac=1;
+      }
 
       vertex.intercept_point.position = intercept_point_position;
       vertex.intercept_point.time = t;
@@ -37,13 +40,15 @@ bool path_planner::CheckCollision(Node start, Node goal){
   goal3d[2] = path.norm()/v_info_.speed;
   path = goal3d - start3d;
 
-  //std::vector<std::vector<int>> bb_vectors_couples(4); // 4 couples of vertexes to check
-  std::vector<Vertex> vxs;
-  std::vector<Eigen::Vector3d> vxs_position3d;
+
 
   for (Obstacle obs : obss_info_.obstacles){
+    //std::vector<std::vector<int>> bb_vectors_couples(4); // 4 couples of vertexes to check
+    std::vector<Vertex> vxs;
+    std::vector<Eigen::Vector3d> vxs_position3d;
+
     if(!goal.isGoal){ // because goal.obs is defined only for every node but the final goal (I could just set goal.obs to "")
-      if(obs.id_ == goal.obs ){
+      if(obs.id_ == goal.obs ){ // if the goal obstacle is this one, then do not check, the algorithm already aims for the visible vxs
         continue;
       }
     }
@@ -55,15 +60,19 @@ bool path_planner::CheckCollision(Node start, Node goal){
     bb_direction[1] = obs.speed_*sin(obs.heading_);
     bb_direction[2] = 1;
     //bb_direction.normalize(); no, because multiplied by t* it returns the position at time t*
+    if( obs.id_ == "1" && start.vx == FR){
+      int teeest = 1;
+    }
 
-    obs.ComputeVertexes(start.position, start.time, vxs);
+    obs.ComputeVertexes(v_info_.position, start.time, vxs);
+
 
     for(Vertex vx : vxs){
       Eigen::Vector3d vx_pos(vx.position[0], vx.position[1], 0);
       vxs_position3d.push_back(vx_pos);
     }
 
-    if(start.obs == "1" && goal.obs == "2"){
+    if(start.obs == "1" && start.vx == RR && goal.obs == "2" && goal.vx == FR){
       int stop = 1;
     }
 
@@ -98,14 +107,17 @@ bool path_planner::CheckCollision(Node start, Node goal){
       bb_vector2 = vxs_position3d[idx2];
 
       // Get the plane normal
-      Eigen::Vector3d planeNormal = bb_direction.cross(bb_vector1 - bb_vector2);
+      Eigen::Vector3d side = bb_vector1 - bb_vector2;
+      Eigen::Vector3d planeNormal = bb_direction.cross(side);
       planeNormal.normalize();
 
       // if the plane and the path are //
+      double lookatme = planeNormal.dot(path);
       if (planeNormal.dot(path) == 0) continue; //do we need tolerance here?
 
       // Compute % of path where the collision happens (from http://paulbourke.net/geometry/pointlineplane/)
-      double u = planeNormal.dot( bb_vector1 - start3d ) / planeNormal.dot(path);
+      Eigen::Vector3d startToOne = bb_vector1 - start3d;
+      double u = planeNormal.dot(startToOne) / planeNormal.dot(path);
 
     	if (u>=0 && u<=1){ // intersect_point between start and goal
         // what about u==1 ? means the collision happens when reaching the vertex,
@@ -190,9 +202,13 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
           //shared_ptr<Node> newnode(new Node());
           Node newnode;
           newnode.position = vx.intercept_point.position;
+
           newnode.obs = obs.id_;
           newnode.vx = vx.id;
           newnode.time = current.time + vx.intercept_point.time;
+          if (newnode.obs=="2" && newnode.vx==RR){
+            int ahahah=1;
+          }
           if (CheckCollision(current, newnode)) {
             // Save new node
             UpdateCosts(newnode, current.g, goal_position, vx.intercept_point.time);
@@ -217,12 +233,18 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
     logFile_ << "Waypoint_" << goal_position(0) << "_" << goal_position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
       logFile_ << "Obs_" << obs.id_ << std::endl;
+      Eigen::Vector2d pose = obs.ComputePosition(current.f);
+      logFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       logFile_ << "Heading_" << obs.heading_ << std::endl;
-      std::vector<Vertex> vertexes;
-      obs.ComputeVertexes(goal_position, current.f, vertexes);
-      for (const Vertex &vx: vertexes) {
-        logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
-      }
+      logFile_ << "Dimx_" << obs.dim_x_ << std::endl;
+      logFile_ << "Dimy_" << obs.dim_y_ << std::endl;
+      logFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
+      logFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
+      //std::vector<Vertex> vertexes;
+      //obs.ComputeVertexes(v_info_.position, current.f, vertexes);
+      //for (const Vertex &vx: vertexes) {
+      //  logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
+      //}
       logFile_ << "-" << std::endl;
     }
 
@@ -240,12 +262,18 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       logFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
       for (Obstacle& obs : obss_info_.obstacles) {
         logFile_ << "Obs_" << obs.id_ << std::endl;
+        Eigen::Vector2d pose = obs.ComputePosition(current.f);
+        logFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
         logFile_ << "Heading_" << obs.heading_ << std::endl;
-        std::vector<Vertex> vertexes;
-        obs.ComputeVertexes(it->position, it->time, vertexes);
-        for (const Vertex &vx: vertexes) {
-          logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
-        }
+        logFile_ << "Dimx_" << obs.dim_x_ << std::endl;
+        logFile_ << "Dimy_" << obs.dim_y_ << std::endl;
+        logFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
+        logFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
+        //std::vector<Vertex> vertexes;
+        //obs.ComputeVertexes(v_info_.position, current.f, vertexes);
+        //for (const Vertex &vx: vertexes) {
+        //  logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
+        //}
         logFile_ << "-" << std::endl;
       }
       //logFile_ << "---" << std::endl;
@@ -256,12 +284,18 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
     logFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
       logFile_ << "Obs_" << obs.id_ << std::endl;
+      Eigen::Vector2d pose = obs.ComputePosition(current.f);
+      logFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       logFile_ << "Heading_" << obs.heading_ << std::endl;
-      std::vector<Vertex> vertexes;
-      obs.ComputeVertexes(v_info_.position, 0, vertexes);
-      for (const Vertex &vx: vertexes) {
-        logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
-      }
+      logFile_ << "Dimx_" << obs.dim_x_ << std::endl;
+      logFile_ << "Dimy_" << obs.dim_y_ << std::endl;
+      logFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
+      logFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
+      //std::vector<Vertex> vertexes;
+      //obs.ComputeVertexes(v_info_.position, current.f, vertexes);
+      //for (const Vertex &vx: vertexes) {
+      //  logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
+      //}
       logFile_ << "-" << std::endl;
     }
 

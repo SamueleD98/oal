@@ -58,7 +58,7 @@ struct Obstacle {
   double dim_x_;
   double dim_y_;
   double max_bb_ratio_ = 2; // max_bb_dim / bb_dim
-  double safety_bb_ratio_ = 1.1; // safety_bb_dim / bb_dim
+  double safety_bb_ratio_ = 1.6; // safety_bb_dim / bb_dim
 //public:
   //inline Obstacle();
   //inline Obstacle(std::string id, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y) :
@@ -97,8 +97,15 @@ struct Obstacle {
       current_dim_y = dim_y_ * max_bb_ratio_;
     }else {
        // Set b_box_dim according to distance
-      current_dim_x = dim_x_ + dist_x;
-      current_dim_y = dim_y_ + dist_y;
+       double ratio_x = dist_x/dim_x_;
+       double ratio_y = dist_y/dim_y_;
+       if (ratio_x >= ratio_y){
+         current_dim_x = dist_x;
+         current_dim_y = ratio_x * dim_y_;
+       }else{
+         current_dim_y = dist_y;
+         current_dim_x = ratio_y * dim_x_;
+       }
     }
     // Find the vertexes position and visibility
     std::vector<Eigen::Vector2d> vertexes_vehicle;  // distances in absolute frame
@@ -111,8 +118,9 @@ struct Obstacle {
     vx_id_map[1] = std::make_pair(FL, std::vector<int>({1, -1}));
     vx_id_map[2] = std::make_pair(RR, std::vector<int>({-1, 1}));
     vx_id_map[3] = std::make_pair(RL, std::vector<int>({-1, -1}));
-    Vertex vx;
+
     for(int i=0; i<4; i++){
+      Vertex vx;
       vx.id = vx_id_map[i].first;
       vx.isVisible = false;
       vx.position[0] = obs_position[0]
