@@ -19,7 +19,8 @@ The library allows computing waypoints to reach a goal, avoiding moving obstacle
 
 ## Plots
 By saving some data during the execution I managed to write a Python script (should be in src) to visualize the position of the objects in the main temporal instants. Here is an example (the obstacles speed is 0):
-![Uploading Screenshot from 2023-08-04 19-37-11.png…]()
+![Screenshot from 2023-08-04 19-37-11](https://github.com/SamueleD98/oal/assets/28822110/49a516e2-9ec3-45a8-9d1b-cb6d716a0168)
+
 The red dot is the vehicle. Also, the safety and maximum bounding box are shown.
 
 
