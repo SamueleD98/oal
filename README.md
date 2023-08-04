@@ -16,6 +16,7 @@ The library allows computing waypoints to reach a goal, avoiding moving obstacle
     - CheckCollision
     - ComputePath
     - UpdateCosts, simply computes the costs according to the vehicle speed. It could easily be a Node function but depending on the vehicle speed and on the goal I'd rather keep it here. Any thoughts?
+- Test
 
 ## Plots
 By saving some data during the execution I managed to write a Python script (should be in src) to visualize the position of the objects in the main temporal instants. Here is an example (the obstacles speed is 0):
