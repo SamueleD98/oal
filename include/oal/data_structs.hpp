@@ -1,14 +1,7 @@
 #ifndef DATA_STRUCTS_HPP
 #define DATA_STRUCTS_HPP
 
-#include "ctrl_toolbox/DataStructs.h"
 #include <eigen3/Eigen/Eigen>
-#include <memory>
-#include <map>
-#include <utility>
-#include <vector>
-
-#define M_PI 3.14159265358979323846
 
 // Vertex indexes map
 enum vx_id {
@@ -18,21 +11,17 @@ enum vx_id {
   RL  // rear left
 };
 
-struct Waypoint{
-  Eigen::Vector2d position;
-  double time;
-};
-
 struct Node {
   Eigen::Vector2d position; //vehicle position
-  double time;  // time instant
-  double g; //cost to reach the Node
-  double h; //estimated cost to reach Goal
-  double f; //g+h total cost
+  double time = -1;  // time instant
+  double g = -1; //cost to reach the Node
+  double h = -1; //estimated cost to reach Goal
+  double f = -1; //g+h total cost
   std::string obs;
   vx_id vx;
   bool isGoal = false;
-  std::shared_ptr<Node> parent;
+  std::shared_ptr<Node> parent = nullptr;
+  // Order nodes in set according to total cost to reach the goal
   bool operator<(const Node other) const {
     return f < other.f;
   }
@@ -59,17 +48,8 @@ struct Obstacle {
   double dim_y_;
   double max_bb_ratio_ = 2; // max_bb_dim / bb_dim
   double safety_bb_ratio_ = 1.6; // safety_bb_dim / bb_dim
-//public:
-  //inline Obstacle();
-  //inline Obstacle(std::string id, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y) :
-  //          id_(std::move(id)), position_(std::move(position)), heading_(heading), speed_(speed), dim_x_(dim_x), dim_y_(dim_y) {}
 
-
-  // auto id() -> std::string& { return id_; }
-  //auto GetId() const -> const std::string& { return id_; }
-
-  // Compute the position of the obs after a given time
-  //  (position and velocity in absolute frame)
+  // How the position changes in time from the original one
   Eigen::Vector2d ComputePosition(double time){
       Eigen::Vector2d shift(speed_*time*cos(heading_), speed_*time*sin(heading_));
       return position_+shift;

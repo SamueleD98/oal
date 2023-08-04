@@ -1,9 +1,5 @@
-#include <memory>
-#include <string>
 
 #include "oal/path_planner.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/float32.hpp"
 
 int main(int, char**)
 {
@@ -37,16 +33,16 @@ int main(int, char**)
   path_planner planner(v_info, obss_info);
 
   Eigen::Vector2d goal = {10,5};
-  std::stack<Waypoint> waypoints;
+  std::stack<Node> waypoints;
   std::cout << "Calling library!" << std::endl;
   if(planner.ComputePath(goal, waypoints)){
     //std::cout << "Found!" << std::endl;
     std::cout << "Found!" << std::endl;
     while (!waypoints.empty()) {
-      Waypoint wp = waypoints.top();
+      Node wp = waypoints.top();
       waypoints.pop();
-      std::cout << "Pos: " << wp.position << std::endl;
-      std::cout << "Time: " << wp.time << std::endl;
+      //std::cout << "Pos: " << wp.position << std::endl;
+      //std::cout << "Time: " << wp.time << std::endl;
     }
   }else{
     std::cout << "Not found." << std::endl;

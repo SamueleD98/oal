@@ -21,7 +21,7 @@ function(ament_cmake_uninstall_target_remove_empty_directories path)
   list(LENGTH files length)
   if(length EQUAL 0)
     message(STATUS "Uninstalling: ${path}/")
-    execute_process(COMMAND "/home/samuele/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/231.9161.40/bin/cmake/linux/x64/bin/cmake" "-E" "remove_directory" "${path}")
+    execute_process(COMMAND "/usr/bin/cmake" "-E" "remove_directory" "${path}")
     # recursively try to remove parent directories
     get_filename_component(parent_path "${path}" PATH)
     ament_cmake_uninstall_target_remove_empty_directories("${parent_path}")

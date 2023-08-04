@@ -1,7 +1,7 @@
 #include "oal/path_planner.hpp"
 
 // Given some obstacle vertexes, find the intercept points
-void path_planner::ComputeInterceptPoints(const Obstacle& obstacle, const Eigen::Vector2d& vehicle_position, std::vector<Vertex>& vertexes){
+void path_planner::ComputeInterceptPoints(const Eigen::Vector2d& vehicle_position, const Obstacle& obstacle,  std::vector<Vertex>& vertexes){
   for (Vertex& vertex : vertexes){
     if(vertex.isVisible){
       // algorithm described in
@@ -147,17 +147,17 @@ bool path_planner::CheckCollision(Node start, Node goal){
 }
 
 // Compute the path to reach the goal
-bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<Waypoint>& waypoints){
+bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<Node>& waypoints){
 
   // Log
   //std::stringstream ss;
   //ss << "log_goal_" << goal_position(1)  << "_" << goal_position(2) << ".txt";
-  if(logFile_.is_open()){
-    logFile_.close();
+  if(plotLogFile_.is_open()){
+    plotLogFile_.close();
   }
-  logFile_.open("log.txt",std::ofstream::trunc);
-  logFile_ << "Start_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
-  logFile_ << "Goal_" << goal_position(0) << "_" << goal_position(1) << std::endl;
+  plotLogFile_.open("log.txt",std::ofstream::trunc);
+  plotLogFile_ << "Start_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
+  plotLogFile_ << "Goal_" << goal_position(0) << "_" << goal_position(1) << std::endl;
 
   bool found = false;
   // set of viable nodes, ordered by total cons (ascending)
@@ -168,7 +168,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
   root.position = v_info_.position;
   root.time = 0;
   UpdateCosts(root, 0, goal_position, 0);
-  root.parent = nullptr;
+  //root.parent = nullptr;
   nodes_set.insert(root);
 
   Node goal;
@@ -193,7 +193,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       std::vector<Vertex> vertexes;
       obs.ComputeVertexes(current.position, current.time, vertexes);
       // Compute when every visible vertex is intercepted
-      ComputeInterceptPoints(obs, current.position, vertexes);
+      ComputeInterceptPoints(current.position, obs, vertexes);
       // Check collision for every one of them
       for (const Vertex& vx : vertexes)
       {
@@ -225,27 +225,22 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
 
   if (found){
     // Build path from goal to initial position
-    Waypoint wp;
+    Node wp;
     Node* it = &current;
 
     // Log
-    logFile_ << "Time_" << current.f << std::endl;
-    logFile_ << "Waypoint_" << goal_position(0) << "_" << goal_position(1) << std::endl;
+    plotLogFile_ << "Time_" << current.f << std::endl;
+    plotLogFile_ << "Waypoint_" << goal_position(0) << "_" << goal_position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
-      logFile_ << "Obs_" << obs.id_ << std::endl;
+      plotLogFile_ << "Obs_" << obs.id_ << std::endl;
       Eigen::Vector2d pose = obs.ComputePosition(current.f);
-      logFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
-      logFile_ << "Heading_" << obs.heading_ << std::endl;
-      logFile_ << "Dimx_" << obs.dim_x_ << std::endl;
-      logFile_ << "Dimy_" << obs.dim_y_ << std::endl;
-      logFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
-      logFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
-      //std::vector<Vertex> vertexes;
-      //obs.ComputeVertexes(v_info_.position, current.f, vertexes);
-      //for (const Vertex &vx: vertexes) {
-      //  logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
-      //}
-      logFile_ << "-" << std::endl;
+      plotLogFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
+      plotLogFile_ << "Heading_" << obs.heading_ << std::endl;
+      plotLogFile_ << "Dimx_" << obs.dim_x_ << std::endl;
+      plotLogFile_ << "Dimy_" << obs.dim_y_ << std::endl;
+      plotLogFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
+      plotLogFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
+      plotLogFile_ << "-" << std::endl;
     }
 
     while(it->parent!=nullptr){
@@ -258,45 +253,34 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       it = &*it->parent;
 
       // Log
-      logFile_ << "Time_" << wp.time << std::endl;
-      logFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
+      plotLogFile_ << "Time_" << wp.time << std::endl;
+      plotLogFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
       for (Obstacle& obs : obss_info_.obstacles) {
-        logFile_ << "Obs_" << obs.id_ << std::endl;
+        plotLogFile_ << "Obs_" << obs.id_ << std::endl;
         Eigen::Vector2d pose = obs.ComputePosition(current.f);
-        logFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
-        logFile_ << "Heading_" << obs.heading_ << std::endl;
-        logFile_ << "Dimx_" << obs.dim_x_ << std::endl;
-        logFile_ << "Dimy_" << obs.dim_y_ << std::endl;
-        logFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
-        logFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
-        //std::vector<Vertex> vertexes;
-        //obs.ComputeVertexes(v_info_.position, current.f, vertexes);
-        //for (const Vertex &vx: vertexes) {
-        //  logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
-        //}
-        logFile_ << "-" << std::endl;
+        plotLogFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
+        plotLogFile_ << "Heading_" << obs.heading_ << std::endl;
+        plotLogFile_ << "Dimx_" << obs.dim_x_ << std::endl;
+        plotLogFile_ << "Dimy_" << obs.dim_y_ << std::endl;
+        plotLogFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
+        plotLogFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
+        plotLogFile_ << "-" << std::endl;
       }
-      //logFile_ << "---" << std::endl;
     }
 
     // Log
-    logFile_ << "Time_" << "0" << std::endl;
-    logFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
+    plotLogFile_ << "Time_" << "0" << std::endl;
+    plotLogFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
-      logFile_ << "Obs_" << obs.id_ << std::endl;
+      plotLogFile_ << "Obs_" << obs.id_ << std::endl;
       Eigen::Vector2d pose = obs.ComputePosition(current.f);
-      logFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
-      logFile_ << "Heading_" << obs.heading_ << std::endl;
-      logFile_ << "Dimx_" << obs.dim_x_ << std::endl;
-      logFile_ << "Dimy_" << obs.dim_y_ << std::endl;
-      logFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
-      logFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
-      //std::vector<Vertex> vertexes;
-      //obs.ComputeVertexes(v_info_.position, current.f, vertexes);
-      //for (const Vertex &vx: vertexes) {
-      //  logFile_ << "Vx_" << vx.position(0) << "_" << vx.position(1) << std::endl;
-      //}
-      logFile_ << "-" << std::endl;
+      plotLogFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
+      plotLogFile_ << "Heading_" << obs.heading_ << std::endl;
+      plotLogFile_ << "Dimx_" << obs.dim_x_ << std::endl;
+      plotLogFile_ << "Dimy_" << obs.dim_y_ << std::endl;
+      plotLogFile_ << "Safety_" << obs.safety_bb_ratio_ << std::endl;
+      plotLogFile_ << "Max_" << obs.max_bb_ratio_ << std::endl;
+      plotLogFile_ << "-" << std::endl;
     }
 
 
