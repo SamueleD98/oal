@@ -17,7 +17,7 @@ struct Node {
   double g = -1; //cost to reach the Node
   double h = -1; //estimated cost to reach Goal
   double f = -1; //g+h total cost
-  std::string obs;
+  std::string obs = "";
   vx_id vx;
   bool isGoal = false;
   std::shared_ptr<Node> parent = nullptr;

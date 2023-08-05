@@ -5,7 +5,7 @@ from matplotlib.patches import Polygon
 import numpy as np
 import sys
 
-log = open("/home/samuele/graal_ws/oal/cmake-build-debug/log.txt", "r")
+log = open("/home/samuele/graal_ws/oal/cmake-build-debug/WPlog.txt", "r")
 #log = open("log.txt", "r")
 Lines = log.readlines()
 data = {}
@@ -48,7 +48,7 @@ bk = data
 fig = plt.figure(figsize=(10, 5))
 
 timeinstants = sorted(data.keys())
-
+wps = []
 count = 0
 for timestamp in timeinstants:
   data = bk
@@ -66,7 +66,18 @@ for timestamp in timeinstants:
   ax.text(startPos[0]-0.6, startPos[1], "Start", ha='center', va='center', fontsize=7)
   ax.scatter(goalPos[0], goalPos[1], color='green', marker='x', s=50)
   ax.text(goalPos[0]-0.6, goalPos[1], "Goal", ha='center', va='center', fontsize=7)
-  ax.scatter(wp["wp"][0], wp["wp"][1], color='red', marker='o', s=30)
+
+  wp_pos = wp["wp"]
+  wps.append(wp_pos)
+  trace_x = []
+  trace_y = []
+  for wp in wps:
+      trace_x.append(wp[0])
+      trace_y.append(wp[1])
+
+  ax.plot(trace_x, trace_y, 'r.:')
+  ax.scatter(wp_pos[0], wp_pos[1], color='red', marker='o')
+
 
   # Add polygons and their names to the plot
   for polygon_data in pol_data:
@@ -135,7 +146,7 @@ for timestamp in timeinstants:
 
       plt.arrow(centroid_x, centroid_y, 0.3*math.cos(heading), 0.3*math.sin(heading), head_width=0.1, head_length=0.1, color='blue')
 
-      ax.text(centroid_x-0.5, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
+      ax.text(centroid_x-mdim_x/2-0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
       ax.axis('equal')
       ax.axis('square')
       ax.set_xlim(8, 12)

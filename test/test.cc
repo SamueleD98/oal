@@ -31,7 +31,7 @@ int main(int, char**)
   Eigen::Vector2d position3 = {11,0.5};
   obs3.position_ = position3;
   obs3.heading_ = 3.14*3/4;
-  obs3.speed_ = 1.8;
+  obs3.speed_ = 0.8;
   obs3.dim_x_ = 0.2;
   obs3.dim_y_ = 0.2;
 

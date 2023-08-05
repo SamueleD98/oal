@@ -14,7 +14,8 @@ class path_planner {
 private:
   VehicleInfo v_info_;
   ObstaclesInfo obss_info_;
-  std::ofstream plotLogFile_;
+  std::ofstream plotWpsFile_;
+  std::ofstream plotCKFile_;
 
   // Compute the costs of a newly created Node,
   //  depending on the time to reach the last node, goal position and time shift wrt last node
