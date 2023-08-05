@@ -5,7 +5,8 @@ from matplotlib.patches import Polygon
 import numpy as np
 import sys
 
-log = open("./../cmake-build-debug/log.txt", "r")
+log = open("/home/samuele/graal_ws/oal/cmake-build-debug/log.txt", "r")
+#log = open("log.txt", "r")
 Lines = log.readlines()
 data = {}
 
@@ -53,6 +54,7 @@ for timestamp in timeinstants:
   data = bk
   count = count + 1
   ax = fig.add_subplot(1, len(data.keys()), count)
+  ax.set_title('Time: '+timestamp)
   # plt.xlim(7, 13)
   # plt.ylim(0, 5)
 
@@ -61,11 +63,14 @@ for timestamp in timeinstants:
   pol_data = data[timestamp]
 
   ax.scatter(startPos[0], startPos[1], color='black', marker='o', s=50)
+  ax.text(startPos[0]-0.6, startPos[1], "Start", ha='center', va='center', fontsize=7)
   ax.scatter(goalPos[0], goalPos[1], color='green', marker='x', s=50)
+  ax.text(goalPos[0]-0.6, goalPos[1], "Goal", ha='center', va='center', fontsize=7)
   ax.scatter(wp["wp"][0], wp["wp"][1], color='red', marker='o', s=30)
 
   # Add polygons and their names to the plot
   for polygon_data in pol_data:
+      #print(polygon_data)
       heading = float(polygon_data['heading'])
       dim_x = float(polygon_data['dimx'])
       dim_y = float(polygon_data['dimy'])
@@ -78,33 +83,33 @@ for timestamp in timeinstants:
       mdim_y = dim_y*max
 
       vx1 = (pose[0]+dim_x/2*math.cos(heading)+dim_y/2*math.sin(heading),
-             pose[1]-dim_x/2*math.cos(heading)-dim_y/2*math.sin(heading))
+             pose[1]-dim_y/2*math.cos(heading)+dim_x/2*math.sin(heading))
       vx2 = (pose[0]+dim_x/2*math.cos(heading)-dim_y/2*math.sin(heading),
-             pose[1]+dim_x/2*math.cos(heading)-dim_y/2*math.sin(heading))
+             pose[1]+dim_y/2*math.cos(heading)+dim_x/2*math.sin(heading))
       vx3 = (pose[0]-dim_x/2*math.cos(heading)+dim_y/2*math.sin(heading),
-             pose[1]-dim_x/2*math.cos(heading)-dim_y/2*math.sin(heading))
+             pose[1]-dim_y/2*math.cos(heading)-dim_x/2*math.sin(heading))
       vx4 = (pose[0]-dim_x/2*math.cos(heading)-dim_y/2*math.sin(heading),
-             pose[1]+dim_x/2*math.cos(heading)-dim_y/2*math.sin(heading))
+             pose[1]+dim_y/2*math.cos(heading)-dim_x/2*math.sin(heading))
       verts = [vx1, vx2, vx3, vx4]
 
       vx1 = (pose[0]+sdim_x/2*math.cos(heading)+sdim_y/2*math.sin(heading),
-             pose[1]-sdim_x/2*math.cos(heading)-sdim_y/2*math.sin(heading))
+             pose[1]-sdim_y/2*math.cos(heading)+sdim_x/2*math.sin(heading))
       vx2 = (pose[0]+sdim_x/2*math.cos(heading)-sdim_y/2*math.sin(heading),
-             pose[1]+sdim_x/2*math.cos(heading)-sdim_y/2*math.sin(heading))
+             pose[1]+sdim_y/2*math.cos(heading)+sdim_x/2*math.sin(heading))
       vx3 = (pose[0]-sdim_x/2*math.cos(heading)+sdim_y/2*math.sin(heading),
-             pose[1]-sdim_x/2*math.cos(heading)-sdim_y/2*math.sin(heading))
+             pose[1]-sdim_y/2*math.cos(heading)-sdim_x/2*math.sin(heading))
       vx4 = (pose[0]-sdim_x/2*math.cos(heading)-sdim_y/2*math.sin(heading),
-             pose[1]+sdim_x/2*math.cos(heading)-sdim_y/2*math.sin(heading))
+             pose[1]+sdim_y/2*math.cos(heading)-sdim_x/2*math.sin(heading))
       sverts = [vx1, vx2, vx3, vx4]
 
       vx1 = (pose[0]+mdim_x/2*math.cos(heading)+mdim_y/2*math.sin(heading),
-             pose[1]-mdim_x/2*math.cos(heading)-mdim_y/2*math.sin(heading))
+             pose[1]-mdim_y/2*math.cos(heading)+mdim_x/2*math.sin(heading))
       vx2 = (pose[0]+mdim_x/2*math.cos(heading)-mdim_y/2*math.sin(heading),
-             pose[1]+mdim_x/2*math.cos(heading)-mdim_y/2*math.sin(heading))
+             pose[1]+mdim_y/2*math.cos(heading)+mdim_x/2*math.sin(heading))
       vx3 = (pose[0]-mdim_x/2*math.cos(heading)+mdim_y/2*math.sin(heading),
-             pose[1]-mdim_x/2*math.cos(heading)-mdim_y/2*math.sin(heading))
+             pose[1]-mdim_y/2*math.cos(heading)-mdim_x/2*math.sin(heading))
       vx4 = (pose[0]-mdim_x/2*math.cos(heading)-mdim_y/2*math.sin(heading),
-             pose[1]+mdim_x/2*math.cos(heading)-mdim_y/2*math.sin(heading))
+             pose[1]+mdim_y/2*math.cos(heading)-mdim_x/2*math.sin(heading))
       mverts = [vx1, vx2, vx3, vx4]
 
 
@@ -138,5 +143,6 @@ for timestamp in timeinstants:
 
 
 plt.show()
+
 
 sys.exit()

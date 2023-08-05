@@ -257,7 +257,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       plotLogFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
       for (Obstacle& obs : obss_info_.obstacles) {
         plotLogFile_ << "Obs_" << obs.id_ << std::endl;
-        Eigen::Vector2d pose = obs.ComputePosition(current.f);
+        Eigen::Vector2d pose = obs.ComputePosition(wp.time);
         plotLogFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
         plotLogFile_ << "Heading_" << obs.heading_ << std::endl;
         plotLogFile_ << "Dimx_" << obs.dim_x_ << std::endl;
@@ -273,7 +273,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
     plotLogFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
       plotLogFile_ << "Obs_" << obs.id_ << std::endl;
-      Eigen::Vector2d pose = obs.ComputePosition(current.f);
+      Eigen::Vector2d pose = obs.ComputePosition(it->time);
       plotLogFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       plotLogFile_ << "Heading_" << obs.heading_ << std::endl;
       plotLogFile_ << "Dimx_" << obs.dim_x_ << std::endl;
