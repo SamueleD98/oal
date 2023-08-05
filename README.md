@@ -1,5 +1,6 @@
 # OAL - Obstacle Avoidance Library
-The library allows computing waypoints to reach a goal, avoiding moving obstacles.
+The library allows computing waypoints to reach a goal, avoiding moving obstacles.  
+
 
 ## Main files
 - DataStructs, groups the definition of the used structures:
@@ -22,17 +23,26 @@ The library allows computing waypoints to reach a goal, avoiding moving obstacle
 By saving some data during the execution I managed to write a Python script (should be in src) to visualize the position of the objects in the main temporal instants. Here is an example (the obstacles speed is 0):
 ![Screenshot from 2023-08-04 19-37-11](https://github.com/SamueleD98/oal/assets/28822110/49a516e2-9ec3-45a8-9d1b-cb6d716a0168)
 
-The red dot is the vehicle. Also, the safety and maximum bounding box are shown.
+The red dot is the vehicle. Also, the safety and maximum bounding box are shown.  
+
+Here is an example with moving obstacles:
+![Screenshot from 2023-08-05 13-12-59](https://github.com/SamueleD98/oal/assets/28822110/e671a79e-a710-4bd0-a516-be01c5f3d21d)
+
 
 
 ## Notes
-About the ComputeVertexes function, I originally wanted to compute for every motion the vxs position according to the changing distance of the vehicle from the obstacles. This seems to be useless (the current use is also incorrect since the passed position is the original position of the vehicle and not the 'current' one) since bb dimension could be computed just once and kept constant. So, the bb dimensions can be an obstacle attribute and the vxs have still to be computed depending on time.
+About the ComputeVertexes function, I originally wanted to compute for every motion the vxs position according to the changing distance of the vehicle from the obstacles. This seems to be useless (the current use is also incorrect since the passed position is the original position of the vehicle and not the 'current' one) since bb dimension could be computed just once and kept constant. So, the bb dimensions can be an obstacle attribute and the vxs have still to be computed depending on time.  
+
+As expected, an obstacle going through the goal will crash into the vehicle (look below). Still I will further explore this situation to make sure it was not the vehicle to crash into the obstacle.
+![Screenshot from 2023-08-05 12-58-38](https://github.com/SamueleD98/oal/assets/28822110/35e7df1a-1307-4d52-b4d0-e2e41c4beefc)
+
 
 ## Current limits
 
+- The vehicle is a dimensionless point
 - The vehicle has to be faster than every vehicle
 - Vehicle and obstacles speed/heading are considered constants
-
+- ..
 
 ## Building and installing
 
