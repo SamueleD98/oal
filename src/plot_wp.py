@@ -148,7 +148,7 @@ for timestamp in timeinstants:
 
       ax.text(centroid_x-mdim_x/2-0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
       ax.axis('equal')
-      ax.axis('square')
+      #ax.axis('square')
       ax.set_xlim(8, 12)
       ax.set_aspect('equal')
 

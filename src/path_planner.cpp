@@ -69,6 +69,9 @@ bool path_planner::CheckCollision(Node start, Node goal){
     obs.ComputeVertexes(v_info_.position, start.time, vxs);
 
     plotCKFile_ << "Obs_" << obs.id_ << std::endl;
+
+    plotCKFile_ << "PlotIt" << std::endl;
+
     plotCKFile_ << "Direction_" << bb_direction(0) << "_" << bb_direction(1) << "_" << bb_direction(2) << std::endl;
     for(Vertex vx : vxs){
       plotCKFile_ << "Vx_" << vx.position[0] << "_" << vx.position[1] << std::endl;
@@ -148,7 +151,6 @@ bool path_planner::CheckCollision(Node start, Node goal){
       }
     }
   }
-  plotCKFile_ << "Doable" << std::endl;
   return true;
 }
 
