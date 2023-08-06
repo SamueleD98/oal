@@ -26,7 +26,10 @@ By saving some data during the execution I managed to write a Python script (sho
 The red dot is the vehicle. Also, the safety and maximum bounding box are shown.  
 
 Here is an example with moving obstacles:
-![Screenshot from 2023-08-05 13-12-59](https://github.com/SamueleD98/oal/assets/28822110/e671a79e-a710-4bd0-a516-be01c5f3d21d)
+![Screenshot from 2023-08-05 13-12-59](https://github.com/SamueleD98/oal/assets/28822110/e671a79e-a710-4bd0-a516-be01c5f3d21d)  
+
+In order to check the correctness of the CheckCollision function, I wrote a script to visualize the bounding boxes and the vehicle path. Here an example:
+![Figure_1](https://github.com/SamueleD98/oal/assets/28822110/34b667d5-8ca8-4d2a-bca5-49d13a8e3098)
 
 
 
