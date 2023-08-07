@@ -10,8 +10,8 @@ int main(int, char**)
 
   // Obstacle constructor arguments: string id, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y, double max_bb_ratio, double safety_bb_ratio
   Obstacle obs1 = Obstacle("1", {9,3}, 0, 0.9, 0.5, 0.5, 2, 1.6 );
-  Obstacle obs2 = Obstacle("2", {11, 4.1}, 3.14, 0.9, 0.4, 0.4, 2, 1.6 );
-  Obstacle obs3 = Obstacle("3", {11, 0.5}, 3.14*3/4, 0.7, 0.2, 0.2, 2, 1.6 );
+  Obstacle obs2 = Obstacle("2", {10, 4.1}, 3.14, 0, 0.4, 0.4, 2, 1.6 );
+  Obstacle obs3 = Obstacle("3", {11, 0.5}, 3.14*3/4, 1.8, 0.2, 0.2, 2, 1.6 );
 
   ObstaclesInfo obss_info;
   obss_info.obstacles.push_back(obs1);

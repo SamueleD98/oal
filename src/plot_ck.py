@@ -63,6 +63,8 @@ for plot in plots:
 
   if(not isToPlot):
       continue
+  else:
+        isToPlot = False
   bk = data
   fig = plt.figure(figsize=(10, 5))
 
@@ -76,6 +78,8 @@ for plot in plots:
   ax.set_xlabel('X')
   ax.set_ylabel('Y')
   ax.set_zlabel('Time')
+  if(isToPlot):
+      ax.set_zlabel('Toime')
   obs = data.keys()
 
   for ob in obs:
