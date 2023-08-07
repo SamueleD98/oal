@@ -8,32 +8,10 @@ int main(int, char**)
   v_info.position = position;
   v_info.speed = 2;
 
-  Obstacle obs1;
-  Obstacle obs2;
-  obs1.id_ = "1";
-  Eigen::Vector2d position1 = {9,3};
-  obs1.position_ = position1;
-  obs1.heading_ = 0;
-  obs1.speed_ = 0.9;
-  obs1.dim_x_ = 0.5;
-  obs1.dim_y_ = 0.5;
-
-  obs2.id_ = "2";
-  Eigen::Vector2d position2 = {11,4.1};
-  obs2.position_ = position2;
-  obs2.heading_ = 3.14;
-  obs2.speed_ = 0.9;
-  obs2.dim_x_ = 0.4;
-  obs2.dim_y_ = 0.4;
-
-  Obstacle obs3;
-  obs3.id_ = "3";
-  Eigen::Vector2d position3 = {11,0.5};
-  obs3.position_ = position3;
-  obs3.heading_ = 3.14*3/4;
-  obs3.speed_ = 0.8;
-  obs3.dim_x_ = 0.2;
-  obs3.dim_y_ = 0.2;
+  // Obstacle constructor arguments: string id, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y, double max_bb_ratio, double safety_bb_ratio
+  Obstacle obs1 = Obstacle("1", {9,3}, 0, 0.9, 0.5, 0.5, 2, 1.6 );
+  Obstacle obs2 = Obstacle("2", {11, 4.1}, 3.14, 0.9, 0.4, 0.4, 2, 1.6 );
+  Obstacle obs3 = Obstacle("3", {11, 0.5}, 3.14*3/4, 0.7, 0.2, 0.2, 2, 1.6 );
 
   ObstaclesInfo obss_info;
   obss_info.obstacles.push_back(obs1);

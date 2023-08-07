@@ -18,8 +18,8 @@ private:
   std::ofstream plotCKFile_;
 
   // Compute the costs of a newly created Node,
-  //  depending on the time to reach the last node, goal position and time shift wrt last node
-  void UpdateCosts(Node& node, double costToReachNode, const Eigen::Vector2d& goal, double timeShift);
+  //  depending on the time to reach the last node and the goal position
+  void UpdateCosts(Node& node, const Eigen::Vector2d& goal);
 
   // Given some obstacle vertexes, find the intercept points with the vehicle
   void ComputeInterceptPoints(const Eigen::Vector2d& vehicle_position, const Obstacle& obstacle, std::vector<Vertex>& vertexes);

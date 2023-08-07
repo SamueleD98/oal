@@ -19,7 +19,7 @@ Safety_1.6
 Max_2
 -
 Obs_3
-Pose_9.57265_1.93077
+Pose_9.75107_1.75192
 Heading_2.355
 Dimx_0.2
 Dimy_0.2
@@ -45,7 +45,7 @@ Safety_1.6
 Max_2
 -
 Obs_3
-Pose_10.2863_1.21538
+Pose_10.3755_1.12596
 Heading_2.355
 Dimx_0.2
 Dimy_0.2

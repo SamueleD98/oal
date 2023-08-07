@@ -20,12 +20,9 @@ void path_planner::ComputeInterceptPoints(const Eigen::Vector2d& vehicle_positio
       Eigen::Vector2d intercept_point_position;
       intercept_point_position[0] = vehicle_position[0]+v_info_.speed*cos(theta)*t;
       intercept_point_position[1] = vehicle_position[1]+v_info_.speed*sin(theta)*t;
-      if(intercept_point_position[1] <1){
-        int afsac=1;
-      }
 
-      vertex.intercept_point.position = intercept_point_position;
-      vertex.intercept_point.time = t;
+      vertex.ip_position = intercept_point_position;
+      vertex.ip_time = t;
     }
   }
 }
@@ -175,29 +172,33 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
   Node root;
   root.position = v_info_.position;
   root.time = 0;
-  UpdateCosts(root, 0, goal_position, 0);
+  UpdateCosts(root, goal_position);
   //root.parent = nullptr;
   nodes_set.insert(root);
 
   Node goal;
   goal.position = goal_position;
-  goal.isGoal = true;
+
+  // Set the bounding box dimension based on the vehicle distance from the obstacles
+  for (Obstacle& obs : obss_info_.obstacles)
+  {
+    obs.ComputeBBDimension(v_info_.position);
+  }
+
   Node current;
-  //Node last_wp;
-  // Run until every node is studied
+  // Run until every node is studied or a path is found
   while(!nodes_set.empty()){
     current = *nodes_set.begin();
     nodes_set.erase(nodes_set.begin());
 
     if (CheckCollision(current, goal)){
       found = true;
-      //last_wp = current;
       break;
     }
 
     for (Obstacle& obs : obss_info_.obstacles)
     {
-      // Compute vertexes depending on distance
+      // Compute vertexes depending on time
       std::vector<Vertex> vertexes;
       obs.ComputeVertexes(current.position, current.time, vertexes);
       // Compute when every visible vertex is intercepted
@@ -209,17 +210,15 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
           // Create new Node (still to check for collision)
           //shared_ptr<Node> newnode(new Node());
           Node newnode;
-          newnode.position = vx.intercept_point.position;
+          newnode.position = vx.ip_position;
 
           newnode.obs = obs.id_;
           newnode.vx = vx.id;
-          newnode.time = current.time + vx.intercept_point.time;
-          if (newnode.obs=="2" && newnode.vx==RR){
-            int ahahah=1;
-          }
+          newnode.time = current.time + vx.ip_time;
+
           if (CheckCollision(current, newnode)) {
             // Save new node
-            UpdateCosts(newnode, current.g, goal_position, vx.intercept_point.time);
+            UpdateCosts(newnode, goal_position);
             std::shared_ptr<Node> parent = std::make_shared<Node>(current);
             //std::shared_ptr<Node> parent = std::shared_ptr<Node>(current, [](const Node&) {});
             newnode.parent = parent;
@@ -237,11 +236,12 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
     Node* it = &current;
 
     // Log
-    plotWpsFile_ << "Time_" << current.f << std::endl;
+    plotWpsFile_ << "Time_" << current.costTotal << std::endl;
     plotWpsFile_ << "Waypoint_" << goal_position(0) << "_" << goal_position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
       plotWpsFile_ << "Obs_" << obs.id_ << std::endl;
-      Eigen::Vector2d pose = obs.ComputePosition(current.f);
+      Eigen::Vector2d shift(obs.speed_*current.costTotal*cos(obs.heading_), obs.speed_*current.costTotal*sin(obs.heading_));
+      Eigen::Vector2d pose = obs.position_+shift;
       plotWpsFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       plotWpsFile_ << "Heading_" << obs.heading_ << std::endl;
       plotWpsFile_ << "Dimx_" << obs.dim_x_ << std::endl;
@@ -265,7 +265,8 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
       plotWpsFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
       for (Obstacle& obs : obss_info_.obstacles) {
         plotWpsFile_ << "Obs_" << obs.id_ << std::endl;
-        Eigen::Vector2d pose = obs.ComputePosition(wp.time);
+        Eigen::Vector2d shift(obs.speed_*wp.time*cos(obs.heading_), obs.speed_*wp.time*sin(obs.heading_));
+        Eigen::Vector2d pose = obs.position_+shift;
         plotWpsFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
         plotWpsFile_ << "Heading_" << obs.heading_ << std::endl;
         plotWpsFile_ << "Dimx_" << obs.dim_x_ << std::endl;
@@ -281,7 +282,8 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
     plotWpsFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
     for (Obstacle& obs : obss_info_.obstacles) {
       plotWpsFile_ << "Obs_" << obs.id_ << std::endl;
-      Eigen::Vector2d pose = obs.ComputePosition(it->time);
+      Eigen::Vector2d shift(obs.speed_*it->time*cos(obs.heading_), obs.speed_*it->time*sin(obs.heading_));
+      Eigen::Vector2d pose = obs.position_+shift;
       plotWpsFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       plotWpsFile_ << "Heading_" << obs.heading_ << std::endl;
       plotWpsFile_ << "Dimx_" << obs.dim_x_ << std::endl;
@@ -298,9 +300,9 @@ bool path_planner::ComputePath(const Eigen::Vector2d& goal_position, std::stack<
 }
 
 
-void path_planner::UpdateCosts(Node& node, double costToReachNode, const Eigen::Vector2d& goal, double timeShift){
-  node.g = costToReachNode + timeShift;
+void path_planner::UpdateCosts(Node& node, const Eigen::Vector2d& goal){
+  node.costToReach = node.time; //if the cost is the time to reach the target
   Eigen::Vector2d dist_to_goal = goal - node.position;
-  node.h = dist_to_goal.norm()/v_info_.speed;
-  node.f = node.g + node.h;
+  node.costToGoal = dist_to_goal.norm()/v_info_.speed;
+  node.costTotal = node.costToReach + node.costToGoal;
 }
