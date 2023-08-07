@@ -33,8 +33,7 @@ In order to check the correctness of the CheckCollision function, I wrote a scri
 
 
 
-## Notes
-About the ComputeVertexes function, I originally wanted to compute for every motion the vxs position according to the changing distance of the vehicle from the obstacles. This seems to be useless (the current use is also incorrect since the passed position is the original position of the vehicle and not the 'current' one) since bb dimension could be computed just once and kept constant. So, the bb dimensions can be an obstacle attribute and the vxs have still to be computed depending on time.  
+## Notes  
 
 As expected, an obstacle going through the goal will crash into the vehicle (look below). Still I will further explore this situation to make sure it was not the vehicle to crash into the obstacle.
 ![Screenshot from 2023-08-05 12-58-38](https://github.com/SamueleD98/oal/assets/28822110/35e7df1a-1307-4d52-b4d0-e2e41c4beefc)  
