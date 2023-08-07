@@ -37,7 +37,14 @@ In order to check the correctness of the CheckCollision function, I wrote a scri
 About the ComputeVertexes function, I originally wanted to compute for every motion the vxs position according to the changing distance of the vehicle from the obstacles. This seems to be useless (the current use is also incorrect since the passed position is the original position of the vehicle and not the 'current' one) since bb dimension could be computed just once and kept constant. So, the bb dimensions can be an obstacle attribute and the vxs have still to be computed depending on time.  
 
 As expected, an obstacle going through the goal will crash into the vehicle (look below). Still I will further explore this situation to make sure it was not the vehicle to crash into the obstacle.
-![Screenshot from 2023-08-05 12-58-38](https://github.com/SamueleD98/oal/assets/28822110/35e7df1a-1307-4d52-b4d0-e2e41c4beefc)
+![Screenshot from 2023-08-05 12-58-38](https://github.com/SamueleD98/oal/assets/28822110/35e7df1a-1307-4d52-b4d0-e2e41c4beefc)  
+
+About variables name: should I use the underscore (e.g. id_) even for structs with public attributes? (I need to fix most of the names since some of them are with the underscore and some are not)  
+
+I'm checking the validity of some of the lib input (such as the obstacle dimension to be positive) by throwing 'std::invalid_argument' exceptions. Is it ok?  
+
+For now, I'm keeping obstacle attributes as public since I need them to be easily accessible for the plots. In the final version, I will set them as private.  
+
 
 
 ## Current limits
