@@ -7,7 +7,7 @@ The library allows computing waypoints to reach a goal, avoiding moving obstacle
     - VehicleInfo, keeps info such as the position and speed of the vehicle. The struct is meant to be upgradable according to the developments of the library.
     - ObstacleInfo, list of obstacles. Again, upgradable as needed.
     - Node, represents a possible waypoint with an estimated cost (time), the obstacle and vertex trace and a pointer to its parent node
-    - Obstacle, has its id, heading, speed, dimension, and bounding box info (max and safety bb ration wrt original dimension). Also, a function computes the position for a specific time instant, according to speed and heading, and one computes the four vertexes' position according to the vehicle distance. I know having methods this should be a class instead of a struct but I'd like to keep the attributes public. Any thoughts?
+    - Obstacle, has its id, heading, speed, dimension, and bounding box info (max and safety bb ration wrt original dimension). Also, a function computes the position for a specific time instant, according to speed and heading, and one computes the four vertexes' position with respect to the centre of the obstacle. I know having methods this should be a class instead of a struct but I'd like to keep the attributes public. Any thoughts?
     - Vertex, a vertex (abs frame) position and id wrt to the obstacle. It's computed every time the algorithm looks for new nodes since the position changes over time (along with visibility).
     - InterceptPoint, where and when the vehicle would intercept a vertex according to the obstacle speed and heading and the vehicle speed (heading is computed)
 - Header Path Planner
