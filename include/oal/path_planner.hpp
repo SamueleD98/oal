@@ -12,45 +12,49 @@
 
 class path_planner {
 private:
-  VehicleInfo v_info_;
-  ObstaclesInfo obss_info_;
-  std::ofstream plotWpsFile_;
-  std::ofstream plotCKFile_;
+    VehicleInfo v_info_;
+    ObstaclesInfo obss_info_;
+    std::ofstream plotWpsFile_;
+    std::ofstream plotCKFile_;
 
-  // Compute the costs of a newly created Node,
-  //  depending on the time to reach the last node and the goal position
-  void UpdateCosts(Node& node, const Eigen::Vector2d& goal);
+    // Compute the costs of a newly created Node,
+    //  depending on the time to reach the last node and the goal position
+    void UpdateCosts(Node &node, const Eigen::Vector2d &goal) const;
 
-  // Given some obstacle vertexes, find the intercept points with the vehicle
-  void ComputeInterceptPoints(const Eigen::Vector2d& vehicle_position, const Obstacle& obstacle, std::vector<Vertex>& vertexes);
+    // Find the vxs position in the absolute frame depending on the time instant
+    static void ComputeAbsVertexes(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs);
 
-  // Check if the path between start and goal collide with any obstacle
-  bool CheckCollision(Node start, Node goal);
+    // Given some obstacle vertexes, find the intercept points with the vehicle
+    void ComputeInterceptPoints(const Eigen::Vector2d &vehicle_position, const Obstacle &obstacle,
+                                std::vector<Vertex> &vertexes) const;
 
-  // Given a set of vertexes, find if are visible from the vehicle (ignoring other obstacles)
-  static void FindVisibility(const Eigen::Vector2d& vh_pos, std::vector<Vertex>& vxs_abs);
+    // Check if the path between start and goal collide with any obstacle
+    bool CheckCollision(Node start, Node &goal, bool isFinalGoal);
+
+    // Given a set of vertexes, find if are visible from the vehicle (ignoring other obstacles)
+    static void FindVisibility(const Eigen::Vector2d &vh_pos, std::vector<Vertex> &vxs_abs);
 
 public:
-  // vehicle start position and obstacles information are supposed to be taken in the same time instant.
-  // the user can always compute the update position/obstacles info before creating the class
+    // vehicle start position and obstacles information are supposed to be taken in the same time instant.
+    // the user can always compute the update position/obstacles info before creating the class
 
-  path_planner(VehicleInfo v_info, ObstaclesInfo obss_info)
-    : v_info_(std::move(v_info)), obss_info_(std::move(obss_info))
-    {
+    path_planner(VehicleInfo v_info, ObstaclesInfo obss_info)
+            : v_info_(std::move(v_info)), obss_info_(std::move(obss_info)) {
       // Plot stuff
-      if(plotCKFile_.is_open()){
+      if (plotCKFile_.is_open()) {
         plotCKFile_.close();
       }
-      plotCKFile_.open("CKlog.txt",std::ofstream::trunc);
+      plotCKFile_.open("CKlog.txt", std::ofstream::trunc);
 
-      if(plotWpsFile_.is_open()){
+      if (plotWpsFile_.is_open()) {
         plotWpsFile_.close();
       }
-      plotWpsFile_.open("WPlog.txt",std::ofstream::trunc);
+      plotWpsFile_.open("WPlog.txt", std::ofstream::trunc);
     }
 
-  // Compute the path to reach the goal and fills the waypoints stack
-  bool ComputePath(const Eigen::Vector2d& goal, std::stack<Node>& waypoints);
+    // Compute the path to reach the goal and fills the waypoints stack
+    bool ComputePath(const Eigen::Vector2d &goal, std::stack<Node> &waypoints);
 
 };
+
 #endif
