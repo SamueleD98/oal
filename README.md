@@ -51,6 +51,7 @@ For now, I'm keeping obstacle attributes as public since I need them to be easil
 - The vehicle is a dimensionless point
 - The vehicle has to be faster than every vehicle
 - Vehicle and obstacles speed/heading are considered constants
+- Overlapping bounding boxes results in algorithm failure
 - ..
 
 ## Building and installing
