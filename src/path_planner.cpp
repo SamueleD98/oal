@@ -1,15 +1,6 @@
 #include "oal/path_planner.hpp"
 
-void path_planner::ComputeAbsVertexes(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs) {
-  Eigen::Vector2d current_obs_position = obs.ComputePosition(time);
-  for (const Vertex &vx: obs.vxs) {
-    Vertex vx_abs;
-    vx_abs.id = vx.id;
-    Eigen::Rotation2D<double> rotation(obs.heading);
-    vx_abs.position = current_obs_position + rotation * vx.position;
-    vxs_abs.push_back(vx_abs);
-  }
-}
+
 
 // Given some obstacle vertexes, find the intercept points
 void path_planner::ComputeInterceptPoints(const Eigen::Vector2d &vehicle_position, const Obstacle &obstacle,
@@ -57,6 +48,7 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
   for (Obstacle obs: obss_info_.obstacles) {
 
     // if the goal obstacle is this one, then do not check, the algorithm already aims for the visible vxs
+    // (this assumption does not hold with overlapping bounding boxes)
     if (obs.id == goal.obs) {
       continue;
     }
@@ -78,45 +70,42 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
     //plotCKFile_ << "PlotIt" << std::endl;
 
     plotCKFile_ << "Direction_" << bb_direction(0) << "_" << bb_direction(1) << "_" << bb_direction(2) << std::endl;
-    std::vector<Eigen::Vector3d> vxs_position3d;
     for (Vertex vx: vxs_abs) {
       plotCKFile_ << "Vx_" << vx.position[0] << "_" << vx.position[1] << std::endl;
-      Eigen::Vector3d vx_pos(vx.position[0], vx.position[1], 0);
-      vxs_position3d.push_back(vx_pos);
     }
     plotCKFile_ << "-" << std::endl;
-
-    for (int i = 0; i < 4; i++) {
-      int idx1, idx2;
-      switch (i) {
+    
+    // for each of the bb 4 sides
+    for (int side_idx = 0; side_idx < 4; side_idx++) {
+      int vx_idx1, vx_idx2;
+      switch (side_idx) {
         case 0:
-          idx1 = 0;
-          idx2 = 2;
+          vx_idx1 = 0;
+          vx_idx2 = 2;
           break;
         case 1:
-          idx1 = 0;
-          idx2 = 1;
+          vx_idx1 = 0;
+          vx_idx2 = 1;
           break;
         case 2:
-          idx1 = 3;
-          idx2 = 2;
+          vx_idx1 = 3;
+          vx_idx2 = 2;
           break;
         case 3:
-          idx1 = 3;
-          idx2 = 1;
+          vx_idx1 = 3;
+          vx_idx2 = 1;
           break;
         default:
           continue;
       }
 
       // if the path starts from the current obs, do not check the sides of the departing vx
-      if (obs.id == start.obs && (start.vx == idx1 || start.vx == idx2)) {
+      if (obs.id == start.obs && (start.vx == vx_idx1 || start.vx == vx_idx2)) {
         continue;
       }
 
-      Eigen::Vector3d bb_vector1, bb_vector2;
-      bb_vector1 = vxs_position3d[idx1];
-      bb_vector2 = vxs_position3d[idx2];
+      Eigen::Vector3d bb_vector1(vxs_abs[vx_idx1].position[0], vxs_abs[vx_idx1].position[1], 0);
+      Eigen::Vector3d bb_vector2(vxs_abs[vx_idx2].position[0], vxs_abs[vx_idx2].position[1], 0);
 
       // Get the plane normal
       Eigen::Vector3d side = bb_vector1 - bb_vector2;
@@ -126,16 +115,17 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
       // if the plane and the path are //
       if (planeNormal.dot(path) == 0) continue; //do we need tolerance here?
 
-      // Compute % of path where the collision happens (from http://paulbourke.net/geometry/pointlineplane/)
+      // Compute position along the path where the collision happens (from http://paulbourke.net/geometry/pointlineplane/)
       Eigen::Vector3d startToOne = bb_vector1 - start3d;
-      double u = planeNormal.dot(startToOne) / planeNormal.dot(path);
+      double c_pos = planeNormal.dot(startToOne) / planeNormal.dot(path);
 
-      if (u >= 0 && u <= 1) { // intersect_point between start and goal
+      // collision_pos has to be between 0 and 1 (start and goal) to be an actual problem
+      if (c_pos >= 0 && c_pos <= 1) { // intersect_point between start and goal
         // what about u==1 ? means the collision happens when reaching the vertex,
         //  that makes sense when approaching the obstacle I'm aiming to
 
         // Get collision time and point
-        Eigen::Vector3d doable_path = path * u; // Part of the path prior the collision
+        Eigen::Vector3d doable_path = path * c_pos; // Part of the path prior the collision
         doable_path[2] = 0;
         double collision_time = doable_path.norm() / v_info_.speed; // When the collision happens
         doable_path[2] = collision_time;
@@ -158,19 +148,17 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
             // and so return false
 
             // Find goal wrt obs frame at goal time
-            Eigen::Vector2d goal_obs = goal.position - obs.ComputePosition(goal3d[2]);
+            Eigen::Vector2d goal_obs = goal.position - ComputePosition(obs, goal3d[2]);
             Eigen::Rotation2D<double> rotation(obs.heading);
             Eigen::Vector2d bodyObs_goal = rotation.inverse() * goal_obs;
 
             if (abs(bodyObs_goal.x()) <= abs(obs.vxs[1].position.x()) &&
                 abs(bodyObs_goal.x()) <= abs(obs.vxs[0].position.x()) &&
                 abs(bodyObs_goal.y()) <= abs(obs.vxs[3].position.y()) &&
-                abs(bodyObs_goal.y() <= obs.vxs[1].position.y())) {
+                abs(bodyObs_goal.y()) <= abs(obs.vxs[1].position.y())) {
 
               Node newgoal;
-              Eigen::Vector2d collision_point_2d;
-              collision_point_2d[0] = collision_point[0];
-              collision_point_2d[1] = collision_point[1];
+              Eigen::Vector2d collision_point_2d(collision_point[0], collision_point[1]);
               newgoal.position = collision_point_2d;
               newgoal.obs = obs.id;
 
@@ -205,11 +193,14 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
   bool found = false;
   // set of viable nodes, ordered by total cost (ascending)
   std::multiset<Node> nodes_set;
+
+  std::multiset<Node> trash_set;
+
   // The planner starts from the vehicle position with time=0
   Node root;
   root.position = v_info_.position;
   root.time = 0;
-  UpdateCosts(root, goal_position);
+  UpdateCosts(root, goal_position, v_info_.speed);
   nodes_set.insert(root);
 
   Node goal;
@@ -225,6 +216,10 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
   while (!nodes_set.empty()) {
     current = *nodes_set.begin();
     nodes_set.erase(nodes_set.begin());
+
+    if(current.time >10){
+      bool tr = true;
+    }
 
     // if goal in a bb, compute closer goal
     // if closer_g is doable,
@@ -255,16 +250,29 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
       // Check collision for every one of them
       for (const Vertex &vx: vxs_abs) {
         if (vx.isVisible) {
+
+
+
           // Create new Node (still to check for collision)
           Node newnode;
           newnode.position = vx.ip_position;
           newnode.obs = obs.id;
           newnode.vx = vx.id;
           newnode.time = current.time + vx.ip_time;
-
+          std::cout << "." << std::endl;
           if (CheckCollision(current, newnode, false)) {
+
+            if(AlreadyExists(newnode, nodes_set)){
+              trash_set.insert(newnode);
+              continue;
+            }
+
+            if(AlreadyExists(newnode, trash_set)){
+              continue;
+            }
+
             // Save new node
-            UpdateCosts(newnode, goal_position);
+            UpdateCosts(newnode, goal_position, v_info_.speed);
             std::shared_ptr<Node> parent = std::make_shared<Node>(current);
             newnode.parent = parent;
             nodes_set.insert(newnode);
@@ -285,9 +293,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
     plotWpsFile_ << "Waypoint_" << goal.position(0) << "_" << goal.position(1) << std::endl;
     for (Obstacle &obs: obss_info_.obstacles) {
       plotWpsFile_ << "Obs_" << obs.id << std::endl;
-      Eigen::Vector2d shift(obs.speed * current.costTotal * cos(obs.heading),
-                            obs.speed * current.costTotal * sin(obs.heading));
-      Eigen::Vector2d pose = obs.position + shift;
+      Eigen::Vector2d pose = ComputePosition(obs, current.costTotal);
       plotWpsFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       plotWpsFile_ << "Heading_" << obs.heading << std::endl;
       plotWpsFile_ << "Dimx_" << obs.dim_x << std::endl;
@@ -308,8 +314,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
       plotWpsFile_ << "Waypoint_" << wp.position(0) << "_" << wp.position(1) << std::endl;
       for (Obstacle &obs: obss_info_.obstacles) {
         plotWpsFile_ << "Obs_" << obs.id << std::endl;
-        Eigen::Vector2d shift(obs.speed * wp.time * cos(obs.heading), obs.speed * wp.time * sin(obs.heading));
-        Eigen::Vector2d pose = obs.position + shift;
+        Eigen::Vector2d pose = ComputePosition(obs, wp.time);
         plotWpsFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
         plotWpsFile_ << "Heading_" << obs.heading << std::endl;
         plotWpsFile_ << "Dimx_" << obs.dim_x << std::endl;
@@ -325,8 +330,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
     plotWpsFile_ << "Waypoint_" << v_info_.position(0) << "_" << v_info_.position(1) << std::endl;
     for (Obstacle &obs: obss_info_.obstacles) {
       plotWpsFile_ << "Obs_" << obs.id << std::endl;
-      Eigen::Vector2d shift(obs.speed * it->time * cos(obs.heading), obs.speed * it->time * sin(obs.heading));
-      Eigen::Vector2d pose = obs.position + shift;
+      Eigen::Vector2d pose = ComputePosition(obs, it->time);
       plotWpsFile_ << "Pose_" << pose(0) << "_" << pose(1) << std::endl;
       plotWpsFile_ << "Heading_" << obs.heading << std::endl;
       plotWpsFile_ << "Dimx_" << obs.dim_x << std::endl;
@@ -340,14 +344,6 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
   return false;
 }
 
-
-void path_planner::UpdateCosts(Node &node, const Eigen::Vector2d &goal) const {
-  node.costToReach = node.time; //if the cost is the time to reach the target
-  Eigen::Vector2d dist_to_goal = goal - node.position;
-  node.costToGoal = dist_to_goal.norm() / v_info_.speed;
-  node.costTotal = node.costToReach + node.costToGoal;
-}
-
 void path_planner::FindVisibility(const Eigen::Vector2d &vh_pos, std::vector<Vertex> &vxs_abs) {
   // The function finds the angles of the vxs wrt the vehicle,
   //  then the visible ones are the ones with min/max angle + the ones closer to the vehicle than these two
@@ -358,6 +354,9 @@ void path_planner::FindVisibility(const Eigen::Vector2d &vh_pos, std::vector<Ver
     Eigen::Vector2d vx_vehicle = vx.position - vh_pos; //if 0 there's a problem
     double theta;
     theta = std::atan2(vx_vehicle[1], vx_vehicle[0]);
+    if (theta<0){
+      theta = theta + 2*M_PI;
+    }
     thetas.push_back(theta);
     vxs_vh.push_back(vx_vehicle);
   }

@@ -21,6 +21,7 @@ option(BUILD_TESTS "Compile tests" ON)
 
 add_library(oal SHARED
     src/path_planner.cpp
+    src/helper_functions.cpp
 )
 
 # find dependencies

@@ -3,6 +3,7 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <utility>
+#include <memory>
 
 // Vertex indexes map
 enum vx_id {
@@ -24,7 +25,7 @@ struct Node {
     std::shared_ptr<Node> parent = nullptr;
 
     // Used to order nodes in set according to total cost to reach the goal
-    bool operator<(const Node other) const {
+    bool operator<(const Node& other) const {
       return costTotal < other.costTotal;
     }
 };
@@ -49,11 +50,6 @@ public:
     double max_bb_ratio; // max_bb_dim / bb_dim
     double safety_bb_ratio; // safety_bb_dim / bb_dim
     std::vector<Vertex> vxs; // local position (wrt obs)
-
-    Eigen::Vector2d ComputePosition(double time) {
-      Eigen::Vector2d shift(speed * time * cos(heading), speed * time * sin(heading));
-      return position + shift;
-    }
 
     void ComputeLocalVertexes(const Eigen::Vector2d &vhPos) {
       // Distance obs-vehicle wrt obs frame, on x and y

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <memory>
 #include "data_structs.hpp"
+#include "helper_functions.hpp"
 #include <stack>
 #include <set>
 #include <eigen3/Eigen/Eigen>
@@ -17,12 +18,7 @@ private:
     std::ofstream plotWpsFile_;
     std::ofstream plotCKFile_;
 
-    // Compute the costs of a newly created Node,
-    //  depending on the time to reach the last node and the goal position
-    void UpdateCosts(Node &node, const Eigen::Vector2d &goal) const;
 
-    // Find the vxs position in the absolute frame depending on the time instant
-    static void ComputeAbsVertexes(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs);
 
     // Given some obstacle vertexes, find the intercept points with the vehicle
     void ComputeInterceptPoints(const Eigen::Vector2d &vehicle_position, const Obstacle &obstacle,
