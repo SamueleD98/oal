@@ -30,6 +30,36 @@ void path_planner::ComputeInterceptPoints(const Eigen::Vector2d &vehicle_positio
   }
 }
 
+bool path_planner::CheckColreg(Node start, Node &goal){
+  Eigen::Vector2d path = goal.position - start.position;
+  double heading_v = atan2(path[1], path[0]); // error for (0,0)
+  if(heading_v<0) heading_v+=2*M_PI;
+  double theta = goal.obs_heading + heading_v;
+
+  if(start.obs == goal.obs){
+    return false;
+  }
+
+  //std::cout << theta << std::endl;
+
+  if(theta > 15 *(M_PI/180) && theta < 112*(M_PI/180) && (goal.vx == RR || goal.vx == RL)){
+    // crossing from right, should stand on
+    return true;
+  }
+
+  if(theta > -(360-247.5) *(M_PI/180) && theta < -(360-345)*(M_PI/180) && (goal.vx == FR || goal.vx == FL)){
+    // crossing from left, should give way
+    return true;
+  }
+
+  if((theta > -(360-345) *(M_PI/180) && theta < 15*(M_PI/180)) && goal.vx == FR) {
+    // head on, should be FL
+    return true;
+  }
+
+  return false;
+}
+
 // Check if the path between start and goal collide with any obstacle
 bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
   Eigen::Vector3d start3d = {start.position[0], start.position[1], 0};
@@ -49,9 +79,9 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
 
     // if the goal obstacle is this one, then do not check, the algorithm already aims for the visible vxs
     // (this assumption does not hold with overlapping bounding boxes)
-    if (obs.id == goal.obs) {
+    /*if (obs.id == goal.obs) {
       continue;
-    }
+    } moved down to plot stuff*/
 
     // Compute obstacle direction in x-y-t
     Eigen::Vector3d bb_direction;
@@ -67,13 +97,19 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
     plotCKFile_ << "Obs_" << obs.id << std::endl;
 
     // Uncomment to plot
-    //plotCKFile_ << "PlotIt" << std::endl;
+    if(start.obs == "1" && start.obs == goal.obs) {
+      plotCKFile_ << "PlotIt" << std::endl;
+    }
 
     plotCKFile_ << "Direction_" << bb_direction(0) << "_" << bb_direction(1) << "_" << bb_direction(2) << std::endl;
     for (Vertex vx: vxs_abs) {
       plotCKFile_ << "Vx_" << vx.position[0] << "_" << vx.position[1] << std::endl;
     }
     plotCKFile_ << "-" << std::endl;
+
+    if (obs.id == goal.obs) {
+      continue;
+    }
     
     // for each of the bb 4 sides
     for (int side_idx = 0; side_idx < 4; side_idx++) {
@@ -103,6 +139,9 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
       if (obs.id == start.obs && (start.vx == vx_idx1 || start.vx == vx_idx2)) {
         continue;
       }
+       /*blindly jump the check here can cause collision when the goal is on another bb side that is then not incident with the path
+       resulting in false negative outcome and so a collision because the current side is traversed by own ship
+       */
 
       Eigen::Vector3d bb_vector1(vxs_abs[vx_idx1].position[0], vxs_abs[vx_idx1].position[1], 0);
       Eigen::Vector3d bb_vector2(vxs_abs[vx_idx2].position[0], vxs_abs[vx_idx2].position[1], 0);
@@ -170,6 +209,7 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
               if (CheckCollision(start, newgoal, false)) {
                 //update goal
                 goal = newgoal;
+                plotCKFile_ << "Good" << std::endl;
                 return true;
               }
             }
@@ -181,6 +221,7 @@ bool path_planner::CheckCollision(Node start, Node &goal, bool isFinalGoal) {
       }
     }
   }
+  plotCKFile_ << "Good" << std::endl;
   return true;
 }
 
@@ -236,12 +277,14 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
 
       // Find vxs visibility
       if (current.obs == obs.id) {
-        // Set the current vx as not visible and find visibility of just the remaining 3 vxs
-        Vertex temp = vxs_abs[(int) current.vx];
-        vxs_abs.erase(vxs_abs.begin() + (int) current.vx);
-        FindVisibility(current.position, vxs_abs);
-        temp.isVisible = false;
-        vxs_abs.insert(vxs_abs.begin() + (int) current.vx, temp);
+        // Set the adjacent vxs as visible
+        if (current.vx == FR || current.vx == RL){
+          vxs_abs[1].isVisible = true;
+          vxs_abs[2].isVisible = true;
+        }else{
+          vxs_abs[0].isVisible = true;
+          vxs_abs[3].isVisible = true;
+        }
       } else {
         FindVisibility(current.position, vxs_abs);
       }
@@ -257,9 +300,13 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, std::stack<
           Node newnode;
           newnode.position = vx.ip_position;
           newnode.obs = obs.id;
+          newnode.obs_heading = obs.heading;
           newnode.vx = vx.id;
           newnode.time = current.time + vx.ip_time;
           std::cout << "." << std::endl;
+          if (CheckColreg(current, newnode)){
+            continue;
+          }
           if (CheckCollision(current, newnode, false)) {
 
             if(AlreadyExists(newnode, nodes_set)){
@@ -360,7 +407,7 @@ void path_planner::FindVisibility(const Eigen::Vector2d &vh_pos, std::vector<Ver
     thetas.push_back(theta);
     vxs_vh.push_back(vx_vehicle);
   }
-
+  // not good, check the kinda difference of the angles!!!!!!!!!!ppppppppppppppp
   auto max_v_ptr = std::max_element(thetas.begin(), thetas.end());
   auto max_v = std::distance(thetas.begin(), max_v_ptr);
   auto min_v_ptr = std::min_element(thetas.begin(), thetas.end());

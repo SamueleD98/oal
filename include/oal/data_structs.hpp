@@ -13,22 +13,7 @@ enum vx_id {
     RL  // rear left
 };
 
-struct Node {
-    Eigen::Vector2d position; //vehicle position
-    // time and costToReach are the same when the cost==time to reach the target (should we be able to manage other costs to minimize?)
-    double time = -1;  // time instant
-    double costToReach = -1; //cost to reach the Node
-    double costToGoal = -1; //estimated cost to reach Goal
-    double costTotal = -1; //g+h total cost
-    std::string obs = "";
-    vx_id vx;
-    std::shared_ptr<Node> parent = nullptr;
 
-    // Used to order nodes in set according to total cost to reach the goal
-    bool operator<(const Node& other) const {
-      return costTotal < other.costTotal;
-    }
-};
 
 struct Vertex {
     vx_id id;
@@ -107,13 +92,36 @@ public:
              double max_bb_ratio, double safety_bb_ratio)
             : id(std::move(name)), position(std::move(position)), heading(heading), speed(speed), dim_x(dim_x),
               dim_y(dim_y), max_bb_ratio(max_bb_ratio), safety_bb_ratio(safety_bb_ratio) {
+
       if (dim_x <= 0 || dim_y <= 0) {
-        throw std::invalid_argument("Obstacle dimension cannot be negative.");
+        throw std::invalid_argument("Obstacle dimension must be strictly positive.");
+      }
+
+      if (safety_bb_ratio < 1 || max_bb_ratio < 1) {
+        throw std::invalid_argument("Safety and maximum bounding box ratios cannot be less than one.");
       }
 
       if (safety_bb_ratio > max_bb_ratio) {
-        throw std::invalid_argument("Safety bounding box ratio cannot be greater than the maximum bounding box one");
+        throw std::invalid_argument("Safety bounding box ratio cannot be greater than the maximum bounding box one.");
       }
+    }
+};
+
+struct Node {
+    Eigen::Vector2d position; //vehicle position
+    // time and costToReach are the same when the cost==time to reach the target (should we be able to manage other costs to minimize?)
+    double time = -1;  // time instant
+    double costToReach = -1; //cost to reach the Node
+    double costToGoal = -1; //estimated cost to reach Goal
+    double costTotal = -1; //g+h total cost
+    std::string obs = "";
+    double obs_heading = -1;
+    vx_id vx;
+    std::shared_ptr<Node> parent = nullptr;
+
+    // Used to order nodes in set according to total cost to reach the goal
+    bool operator<(const Node& other) const {
+      return costTotal < other.costTotal;
     }
 };
 

@@ -24,6 +24,9 @@ private:
     void ComputeInterceptPoints(const Eigen::Vector2d &vehicle_position, const Obstacle &obstacle,
                                 std::vector<Vertex> &vertexes) const;
 
+
+    bool CheckColreg(Node start, Node &goal);
+
     // Check if the path between start and goal collide with any obstacle
     bool CheckCollision(Node start, Node &goal, bool isFinalGoal);
 
