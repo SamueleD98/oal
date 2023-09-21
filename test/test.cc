@@ -5,7 +5,7 @@ int main(int, char **) {
 
 
   VehicleInfo v_info;
-  Eigen::Vector2d position = {10, 0};
+  Eigen::Vector2d position = {9.1, 0};
   v_info.position = position;
   v_info.speed = 2;
 
@@ -17,7 +17,7 @@ int main(int, char **) {
 */
 
   // overlapping bb
-  Obstacle obs1 = Obstacle("1", {10, 8}, 0, 0, 0.5, 0.5, 2, 1.6);
+  Obstacle obs1 = Obstacle("1", {10, 1}, 0, 0, 0.5, 0.5, 6, 5);
   Obstacle obs2 = Obstacle("2", {10, 9}, 0, 0, 1, 1, 2, 1.6);
   Obstacle obs3 = Obstacle("3", {11, 10}, 0, 0, 0.5, 0.5, 2, 1.6);
   Obstacle obs4 = Obstacle("4", {9, 10}, 0, 0, 0.5, 0.5, 2, 1.6);
@@ -33,8 +33,8 @@ int main(int, char **) {
 
   ObstaclesInfo obss_info;
   obss_info.obstacles.push_back(obs1);
-  obss_info.obstacles.push_back(obs2);
- // obss_info.obstacles.push_back(obs3);
+  //obss_info.obstacles.push_back(obs2);
+  // obss_info.obstacles.push_back(obs3);
   //obss_info.obstacles.push_back(obs4);
 
 

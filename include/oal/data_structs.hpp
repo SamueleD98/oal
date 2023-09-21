@@ -13,14 +13,13 @@ enum vx_id {
     RL  // rear left
 };
 
-
-
 struct Vertex {
     vx_id id;
     Eigen::Vector2d position;
     bool isVisible = false;
     Eigen::Vector2d ip_position;  //intercept point position
     double ip_time = -1; //intercept time
+    //std::shared_ptr<Obstacle> obs = nullptr;
 };
 
 class Obstacle {
@@ -104,6 +103,10 @@ public:
       if (safety_bb_ratio > max_bb_ratio) {
         throw std::invalid_argument("Safety bounding box ratio cannot be greater than the maximum bounding box one.");
       }
+
+      if (heading < 0 || heading > 2*M_PI) {
+        throw std::invalid_argument("Obstacle heading must be expressed in radians [0, 2*pi]");
+      }
     }
 };
 
@@ -118,9 +121,10 @@ struct Node {
     double obs_heading = -1;
     vx_id vx;
     std::shared_ptr<Node> parent = nullptr;
+    std::vector<vx_id> colregsLimitedVxs;
 
     // Used to order nodes in set according to total cost to reach the goal
-    bool operator<(const Node& other) const {
+    bool operator<(const Node &other) const {
       return costTotal < other.costTotal;
     }
 };

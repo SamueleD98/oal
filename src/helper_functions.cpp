@@ -7,7 +7,7 @@ void UpdateCosts(Node &node, const Eigen::Vector2d &goal, double speed) {
   node.costTotal = node.costToReach + node.costToGoal;
 }
 
-void ComputeAbsVertexes(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs) {
+void FindAbsVxs(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs) {
   Eigen::Vector2d current_obs_position = ComputePosition(obs, time);
   for (const Vertex &vx: obs.vxs) {
     Vertex vx_abs;
@@ -18,11 +18,11 @@ void ComputeAbsVertexes(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs
   }
 }
 
-bool AlreadyExists(Node new_node, std::multiset<Node>& set){
-  Eigen::Vector2d new_node_pos( (int) new_node.position[0]*100, (int) new_node.position[1]*100);
-  for (const auto & node : set) {
-    Eigen::Vector2d old_node_pos( (int) node.position[0]*100, (int) node.position[1]*100);
-    if( new_node_pos == old_node_pos && new_node.obs == node.obs && new_node.vx == node.vx){
+bool AlreadyExists(Node new_node, std::multiset<Node> &set) {
+  Eigen::Vector2d new_node_pos((int) new_node.position[0] * 100, (int) new_node.position[1] * 100);
+  for (const auto &node: set) {
+    Eigen::Vector2d old_node_pos((int) node.position[0] * 100, (int) node.position[1] * 100);
+    if (new_node_pos == old_node_pos && new_node.obs == node.obs && new_node.vx == node.vx) {
       return true;
     }
   }

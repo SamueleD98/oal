@@ -1,8 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/oal_uninstall"
-)
+        "CMakeFiles/oal_uninstall"
+        )
 
 # Per-language clean rules from dependency scanning.
-foreach(lang )
-  include(CMakeFiles/oal_uninstall.dir/cmake_clean_${lang}.cmake OPTIONAL)
-endforeach()
+foreach (lang)
+    include(CMakeFiles/oal_uninstall.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach ()

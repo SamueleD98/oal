@@ -19,19 +19,26 @@ private:
     std::ofstream plotCKFile_;
 
 
-
     // Given some obstacle vertexes, find the intercept points with the vehicle
-    void ComputeInterceptPoints(const Eigen::Vector2d &vehicle_position, const Obstacle &obstacle,
-                                std::vector<Vertex> &vertexes) const;
+    void FindInterceptPoints(const Eigen::Vector2d &vehicle_position, Obstacle &obstacle,
+                                std::vector<Vertex> &vxs_abs) const;
 
-
-    bool CheckColreg(Node start, Node &goal);
+    static bool CheckColreg(const Node &start, Node &goal);
 
     // Check if the path between start and goal collide with any obstacle
     bool CheckCollision(Node start, Node &goal, bool isFinalGoal);
 
     // Given a set of vertexes, find if are visible from the vehicle (ignoring other obstacles)
-    static void FindVisibility(const Eigen::Vector2d &vh_pos, std::vector<Vertex> &vxs_abs);
+    static void FindVisibility(Node &node, Obstacle &obs, std::vector<Vertex> &vxs_abs);
+
+    void BuildPath(Node *it, std::stack<Node> &waypoints);
+
+    static bool FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const Eigen::Vector3d& bb_direction, const Eigen::Vector3d& start, const Eigen::Vector3d& goal, double speed, Eigen::Vector3d &collision_point);
+
+    static bool IsInBB(const Eigen::Vector2d& element_pos, Obstacle &obs, double time);
+
+    static void FindExitVxs(const Eigen::Vector2d& element_pos, Obstacle &obs, double time, std::vector<vx_id> &allowedVxs);
+
 
 public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.
