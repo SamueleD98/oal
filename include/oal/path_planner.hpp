@@ -15,6 +15,7 @@ class path_planner {
 private:
     VehicleInfo v_info_;
     ObstaclesInfo obss_info_;
+    bool colregs_compliance;
     std::ofstream plotWpsFile_;
     std::ofstream plotCKFile_;
 
@@ -23,7 +24,7 @@ private:
     void FindInterceptPoints(const Eigen::Vector2d &vehicle_position, Obstacle &obstacle,
                                 std::vector<Vertex> &vxs_abs) const;
 
-    static bool CheckColreg(const Node &start, Node &goal);
+    bool CheckColreg(const Node &start, Node &goal) const;
 
     // Check if the path between start and goal collide with any obstacle
     bool CheckCollision(Node start, Node &goal, bool isFinalGoal);
@@ -35,9 +36,11 @@ private:
 
     static bool FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const Eigen::Vector3d& bb_direction, const Eigen::Vector3d& start, const Eigen::Vector3d& goal, double speed, Eigen::Vector3d &collision_point);
 
-    static bool IsInBB(const Eigen::Vector2d& element_pos, Obstacle &obs, double time);
+    static bool IsInBB(const Eigen::Vector2d& element_pos, const Obstacle &obs, double time);
 
     static void FindExitVxs(const Eigen::Vector2d& element_pos, Obstacle &obs, double time, std::vector<vx_id> &allowedVxs);
+
+
 
 
 public:
@@ -46,6 +49,7 @@ public:
 
     path_planner(VehicleInfo v_info, ObstaclesInfo obss_info)
             : v_info_(std::move(v_info)), obss_info_(std::move(obss_info)) {
+      colregs_compliance = false;
       // Plot stuff
       if (plotCKFile_.is_open()) {
         plotCKFile_.close();
@@ -59,7 +63,7 @@ public:
     }
 
     // Compute the path to reach the goal and fills the waypoints stack
-    bool ComputePath(const Eigen::Vector2d &goal, std::stack<Node> &waypoints);
+    bool ComputePath(const Eigen::Vector2d &goal, bool colregs, std::stack<Node> &waypoints);
 
 };
 

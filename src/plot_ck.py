@@ -41,12 +41,14 @@ plot = []
 for line in Lines:
     line = line.strip()
     Values = line.split("_")
+
     if Values[0] == "---":
         plots.append(plot)
 
         plot = []
     else:
         plot.append(line)
+plots.append(plot)
 
 for plot in plots:
     if plot == []:
@@ -56,6 +58,8 @@ for plot in plots:
     isGood = False
 
     data = {}
+
+
     for line in plot:
         # line = line.strip()
         # print(line)
@@ -87,6 +91,7 @@ for plot in plots:
     if (not isToPlot or not isGood):
         continue
     else:
+        print(".")
         isToPlot = False
         isGood = False
     bk = data

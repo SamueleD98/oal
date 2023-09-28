@@ -28,3 +28,4 @@ bool AlreadyExists(Node new_node, std::multiset<Node> &set) {
   }
   return false;
 }
+

@@ -21,39 +21,42 @@ for line in Lines:
     elif key == "Goal":
         goalPos = (float(Values[1]), float(Values[2]))
     elif key == "Time":
-        timestamp = Values[1]
+        timestamp = float(Values[1])
         data[timestamp] = []
     elif key == "Waypoint":
         data[timestamp].append({"wp": (float(Values[1]), float(Values[2]))})
     elif key == "Obs":
         id = Values[1]
-    elif key == "Pose":
-        pose = (float(Values[1]), float(Values[2]))
+        vxs =[]
+    elif key == "Position":
+        position = (float(Values[1]), float(Values[2]))
     elif key == "Heading":
         theta = float(Values[1])
     elif key == "Safety":
         safety = float(Values[1])
-    elif key == "Max":
-        max = float(Values[1])
+    elif key == "Vx":
+        vx = (float(Values[1]), float(Values[2]))
+        vxs.append(vx)
     elif key == "Dimx":
         dimx = float(Values[1])
     elif key == "Dimy":
         dimy = float(Values[1])
     elif key == "-":
         data[timestamp].append(
-            {"obs": id, "pose": pose, "heading": theta, "safety": safety, "max": max, "dimx": dimx, "dimy": dimy})
+            {"obs": id, "position": position, "heading": theta, "safety": safety, "vx1": vxs[0], "vx2": vxs[1],"vx3": vxs[2],"vx4": vxs[3],"dimx": dimx, "dimy": dimy})
 
 bk = data
 fig = plt.figure(figsize=(10, 5))
 
 timeinstants = sorted(data.keys())
+
 wps = []
 count = 0
 for timestamp in timeinstants:
     data = bk
     count = count + 1
     ax = fig.add_subplot(1, len(data.keys()), count)
-    ax.set_title('Time: ' + timestamp)
+    ax.set_title('Time: ' + str(timestamp))
     # plt.xlim(7, 13)
     # plt.ylim(0, 5)
 
@@ -84,41 +87,39 @@ for timestamp in timeinstants:
         dim_x = float(polygon_data['dimx'])
         dim_y = float(polygon_data['dimy'])
         safety = float(polygon_data['safety'])
-        max = float(polygon_data['max'])
-        pose = (float(polygon_data['pose'][0]), float(polygon_data['pose'][1]))
-        sdim_x = dim_x * safety
-        mdim_x = dim_x * max
-        sdim_y = dim_y * safety
-        mdim_y = dim_y * max
 
-        vx1 = (pose[0] + dim_x / 2 * math.cos(heading) + dim_y / 2 * math.sin(heading),
-               pose[1] - dim_y / 2 * math.cos(heading) + dim_x / 2 * math.sin(heading))
-        vx2 = (pose[0] + dim_x / 2 * math.cos(heading) - dim_y / 2 * math.sin(heading),
-               pose[1] + dim_y / 2 * math.cos(heading) + dim_x / 2 * math.sin(heading))
-        vx3 = (pose[0] - dim_x / 2 * math.cos(heading) + dim_y / 2 * math.sin(heading),
-               pose[1] - dim_y / 2 * math.cos(heading) - dim_x / 2 * math.sin(heading))
-        vx4 = (pose[0] - dim_x / 2 * math.cos(heading) - dim_y / 2 * math.sin(heading),
-               pose[1] + dim_y / 2 * math.cos(heading) - dim_x / 2 * math.sin(heading))
+
+
+        position = (float(polygon_data['position'][0]), float(polygon_data['position'][1]))
+        sdim_x = dim_x * safety
+        #mdim_x = dim_x * max
+        sdim_y = dim_y * safety
+        #mdim_y = dim_y * max
+
+        vx1 = (position[0] + dim_x / 2 * math.cos(heading) + dim_y / 2 * math.sin(heading),
+               position[1] - dim_y / 2 * math.cos(heading) + dim_x / 2 * math.sin(heading))
+        vx2 = (position[0] + dim_x / 2 * math.cos(heading) - dim_y / 2 * math.sin(heading),
+               position[1] + dim_y / 2 * math.cos(heading) + dim_x / 2 * math.sin(heading))
+        vx3 = (position[0] - dim_x / 2 * math.cos(heading) + dim_y / 2 * math.sin(heading),
+               position[1] - dim_y / 2 * math.cos(heading) - dim_x / 2 * math.sin(heading))
+        vx4 = (position[0] - dim_x / 2 * math.cos(heading) - dim_y / 2 * math.sin(heading),
+               position[1] + dim_y / 2 * math.cos(heading) - dim_x / 2 * math.sin(heading))
         verts = [vx1, vx2, vx3, vx4]
 
-        vx1 = (pose[0] + sdim_x / 2 * math.cos(heading) + sdim_y / 2 * math.sin(heading),
-               pose[1] - sdim_y / 2 * math.cos(heading) + sdim_x / 2 * math.sin(heading))
-        vx2 = (pose[0] + sdim_x / 2 * math.cos(heading) - sdim_y / 2 * math.sin(heading),
-               pose[1] + sdim_y / 2 * math.cos(heading) + sdim_x / 2 * math.sin(heading))
-        vx3 = (pose[0] - sdim_x / 2 * math.cos(heading) + sdim_y / 2 * math.sin(heading),
-               pose[1] - sdim_y / 2 * math.cos(heading) - sdim_x / 2 * math.sin(heading))
-        vx4 = (pose[0] - sdim_x / 2 * math.cos(heading) - sdim_y / 2 * math.sin(heading),
-               pose[1] + sdim_y / 2 * math.cos(heading) - sdim_x / 2 * math.sin(heading))
+        vx1 = (position[0] + sdim_x / 2 * math.cos(heading) + sdim_y / 2 * math.sin(heading),
+               position[1] - sdim_y / 2 * math.cos(heading) + sdim_x / 2 * math.sin(heading))
+        vx2 = (position[0] + sdim_x / 2 * math.cos(heading) - sdim_y / 2 * math.sin(heading),
+               position[1] + sdim_y / 2 * math.cos(heading) + sdim_x / 2 * math.sin(heading))
+        vx3 = (position[0] - sdim_x / 2 * math.cos(heading) + sdim_y / 2 * math.sin(heading),
+               position[1] - sdim_y / 2 * math.cos(heading) - sdim_x / 2 * math.sin(heading))
+        vx4 = (position[0] - sdim_x / 2 * math.cos(heading) - sdim_y / 2 * math.sin(heading),
+               position[1] + sdim_y / 2 * math.cos(heading) - sdim_x / 2 * math.sin(heading))
         sverts = [vx1, vx2, vx3, vx4]
 
-        vx1 = (pose[0] + mdim_x / 2 * math.cos(heading) + mdim_y / 2 * math.sin(heading),
-               pose[1] - mdim_y / 2 * math.cos(heading) + mdim_x / 2 * math.sin(heading))
-        vx2 = (pose[0] + mdim_x / 2 * math.cos(heading) - mdim_y / 2 * math.sin(heading),
-               pose[1] + mdim_y / 2 * math.cos(heading) + mdim_x / 2 * math.sin(heading))
-        vx3 = (pose[0] - mdim_x / 2 * math.cos(heading) + mdim_y / 2 * math.sin(heading),
-               pose[1] - mdim_y / 2 * math.cos(heading) - mdim_x / 2 * math.sin(heading))
-        vx4 = (pose[0] - mdim_x / 2 * math.cos(heading) - mdim_y / 2 * math.sin(heading),
-               pose[1] + mdim_y / 2 * math.cos(heading) - mdim_x / 2 * math.sin(heading))
+        vx1 = polygon_data['vx1']
+        vx2 = polygon_data['vx2']
+        vx3 = polygon_data['vx3']
+        vx4 = polygon_data['vx4']
         mverts = [vx1, vx2, vx3, vx4]
 
         # verts = polygon_data['vxs']
@@ -143,9 +144,9 @@ for timestamp in timeinstants:
         plt.arrow(centroid_x, centroid_y, 0.3 * math.cos(heading), 0.3 * math.sin(heading), head_width=0.1,
                   head_length=0.1, color='blue')
 
-        ax.text(centroid_x - mdim_x / 2 - 0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
+        ax.text(centroid_x - sdim_x / 2 - 0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
         ax.axis('equal')
-        # ax.axis('square')
+        #ax.axis('square')
         ax.set_xlim(8, 12)
         ax.set_aspect('equal')
 
