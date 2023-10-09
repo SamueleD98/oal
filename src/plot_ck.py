@@ -59,7 +59,6 @@ for plot in plots:
 
     data = {}
 
-
     for line in plot:
         # line = line.strip()
         # print(line)

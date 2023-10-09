@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include "data_structs.hpp"
+#include "data_structs/misc.hpp"
 #include "helper_functions.hpp"
 #include <stack>
 #include <set>
@@ -19,29 +19,34 @@ private:
     std::ofstream plotWpsFile_;
     std::ofstream plotCKFile_;
 
-
     // Given some obstacle vertexes, find the intercept points with the vehicle
     void FindInterceptPoints(const Eigen::Vector2d &vehicle_position, Obstacle &obstacle,
-                                std::vector<Vertex> &vxs_abs) const;
+                             std::vector<Vertex> &vxs_abs) const;
 
     bool CheckColreg(const Node &start, Node &goal) const;
 
     // Check if the path between start and goal collide with any obstacle
-    bool CheckCollision(Node start, Node &goal, bool isFinalGoal);
+    //  is standard pointer the best choice?            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    bool CheckCollision(Node start, Node &goal, std::vector<Node> *collision_points = nullptr);
 
     // Given a set of vertexes, find if are visible from the vehicle (ignoring other obstacles)
     static void FindVisibility(Node &node, Obstacle &obs, std::vector<Vertex> &vxs_abs);
 
     void BuildPath(Node *it, std::stack<Node> &waypoints);
 
-    static bool FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const Eigen::Vector3d& bb_direction, const Eigen::Vector3d& start, const Eigen::Vector3d& goal, double speed, Eigen::Vector3d &collision_point);
+    static bool FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const Eigen::Vector3d &bb_direction,
+                                               const Eigen::Vector3d &start, const Eigen::Vector3d &goal, double speed,
+                                               Eigen::Vector3d &collision_point);
 
-    static bool IsInBB(const Eigen::Vector2d& element_pos, const Obstacle &obs, double time);
+    static bool IsInBB(const Eigen::Vector2d &element_pos, Obstacle obs, double time);
 
-    static void FindExitVxs(const Eigen::Vector2d& element_pos, Obstacle &obs, double time, std::vector<vx_id> &allowedVxs);
+    bool IsInAnyBB(const Eigen::Vector2d &element_pos, double time,
+                   std::vector<std::string> *surrounding_obs = nullptr) const;
 
+    static void
+    FindExitVxs(const Eigen::Vector2d &element_pos, Obstacle &obs, double time, std::vector<vx_id> &allowedVxs);
 
-
+    bool CheckFinal(const Node &start, Node &goal);
 
 public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.

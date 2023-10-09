@@ -1,7 +1,8 @@
 import math
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 from matplotlib.patches import Polygon
 
 log = open("/home/samuele/graal_ws/oal/cmake-build-debug/WPlog.txt", "r")
@@ -27,7 +28,7 @@ for line in Lines:
         data[timestamp].append({"wp": (float(Values[1]), float(Values[2]))})
     elif key == "Obs":
         id = Values[1]
-        vxs =[]
+        vxs = []
     elif key == "Position":
         position = (float(Values[1]), float(Values[2]))
     elif key == "Heading":
@@ -43,7 +44,8 @@ for line in Lines:
         dimy = float(Values[1])
     elif key == "-":
         data[timestamp].append(
-            {"obs": id, "position": position, "heading": theta, "safety": safety, "vx1": vxs[0], "vx2": vxs[1],"vx3": vxs[2],"vx4": vxs[3],"dimx": dimx, "dimy": dimy})
+            {"obs": id, "position": position, "heading": theta, "safety": safety, "vx1": vxs[0], "vx2": vxs[1],
+             "vx3": vxs[2], "vx4": vxs[3], "dimx": dimx, "dimy": dimy})
 
 bk = data
 fig = plt.figure(figsize=(10, 5))
@@ -88,13 +90,11 @@ for timestamp in timeinstants:
         dim_y = float(polygon_data['dimy'])
         safety = float(polygon_data['safety'])
 
-
-
         position = (float(polygon_data['position'][0]), float(polygon_data['position'][1]))
         sdim_x = dim_x * safety
-        #mdim_x = dim_x * max
+        # mdim_x = dim_x * max
         sdim_y = dim_y * safety
-        #mdim_y = dim_y * max
+        # mdim_y = dim_y * max
 
         vx1 = (position[0] + dim_x / 2 * math.cos(heading) + dim_y / 2 * math.sin(heading),
                position[1] - dim_y / 2 * math.cos(heading) + dim_x / 2 * math.sin(heading))
@@ -146,7 +146,7 @@ for timestamp in timeinstants:
 
         ax.text(centroid_x - sdim_x / 2 - 0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
         ax.axis('equal')
-        #ax.axis('square')
+        # ax.axis('square')
         ax.set_xlim(8, 12)
         ax.set_aspect('equal')
 

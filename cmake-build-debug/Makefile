@@ -247,6 +247,54 @@ src/helper_functions.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/helper_functions.cpp.s
 .PHONY : src/helper_functions.cpp.s
 
+src/node.o: src/node.cpp.o
+.PHONY : src/node.o
+
+# target to build an object file
+src/node.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/node.cpp.o
+.PHONY : src/node.cpp.o
+
+src/node.i: src/node.cpp.i
+.PHONY : src/node.i
+
+# target to preprocess a source file
+src/node.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/node.cpp.i
+.PHONY : src/node.cpp.i
+
+src/node.s: src/node.cpp.s
+.PHONY : src/node.s
+
+# target to generate assembly for a file
+src/node.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/node.cpp.s
+.PHONY : src/node.cpp.s
+
+src/obstacle.o: src/obstacle.cpp.o
+.PHONY : src/obstacle.o
+
+# target to build an object file
+src/obstacle.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/obstacle.cpp.o
+.PHONY : src/obstacle.cpp.o
+
+src/obstacle.i: src/obstacle.cpp.i
+.PHONY : src/obstacle.i
+
+# target to preprocess a source file
+src/obstacle.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/obstacle.cpp.i
+.PHONY : src/obstacle.cpp.i
+
+src/obstacle.s: src/obstacle.cpp.s
+.PHONY : src/obstacle.s
+
+# target to generate assembly for a file
+src/obstacle.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/obstacle.cpp.s
+.PHONY : src/obstacle.cpp.s
+
 src/path_planner.o: src/path_planner.cpp.o
 .PHONY : src/path_planner.o
 
@@ -315,6 +363,12 @@ help:
 	@echo "... src/helper_functions.o"
 	@echo "... src/helper_functions.i"
 	@echo "... src/helper_functions.s"
+	@echo "... src/node.o"
+	@echo "... src/node.i"
+	@echo "... src/node.s"
+	@echo "... src/obstacle.o"
+	@echo "... src/obstacle.i"
+	@echo "... src/obstacle.s"
 	@echo "... src/path_planner.o"
 	@echo "... src/path_planner.i"
 	@echo "... src/path_planner.s"

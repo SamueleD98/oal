@@ -213,6 +213,12 @@
 		<Unit filename="/home/samuele/graal_ws/oal/src/helper_functions.cpp">
 			<Option target="oal"/>
 		</Unit>
+		<Unit filename="/home/samuele/graal_ws/oal/src/node.cpp">
+			<Option target="oal"/>
+		</Unit>
+		<Unit filename="/home/samuele/graal_ws/oal/src/obstacle.cpp">
+			<Option target="oal"/>
+		</Unit>
 		<Unit filename="/home/samuele/graal_ws/oal/src/path_planner.cpp">
 			<Option target="oal"/>
 		</Unit>

@@ -1,5 +1,5 @@
 
-#include "oal/path_planner.hpp"
+#include "path_planner.hpp"
 
 int main(int, char **) {
 
@@ -18,33 +18,39 @@ int main(int, char **) {
     case 1: {// static or moving obstacles, no colregs
       v_info.position = {10, 0};
       v_info.speed = 2;
-      Obstacle obs1_1 = Obstacle("1", {10, 5}, M_PI/2, 1, 2, 0.5, 3.2, 5, 3.2, 3);
+      Obstacle obs1_1 = Obstacle("1", {10, 5}, M_PI / 2, 0.5, 2, 0.5, 3.2, 9, 3.2, 3, true);
       Obstacle obs1_2 = Obstacle("2", {9, 10}, M_PI, 0.5, 2, 0.5, 3.2, 5, 3.2, 3);
+      Obstacle obs1_3 = Obstacle("3", {8, 14}, M_PI * 1 / 4, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
       obss_info.obstacles.push_back(obs1_1);
       obss_info.obstacles.push_back(obs1_2);
+      obss_info.obstacles.push_back(obs1_3);
       goal = {10, 20};
-      break;}
+      break;
+    }
     case 2: {// head on
       v_info.position = {10, 0};
       v_info.speed = 2;
       //Obstacle obs2_1 = Obstacle("1", {10.2, 10}, M_PI*3/2, 1, 0.5, 0.5, 2, 1.5);
       //obss_info.obstacles.push_back(obs2_1);
       goal = {10, 10};
-      break;}
+      break;
+    }
     case 3: {// TS crossing from right
       v_info.position = {10, 0};
       v_info.speed = 2;
       //Obstacle obs3_1 = Obstacle("1", {12.5, 4}, M_PI, 1, 0.5, 0.5, 2, 1.5);
       //obss_info.obstacles.push_back(obs3_1);
       goal = {10, 10};
-      break;}
+      break;
+    }
     case 4: {// crossing left
       v_info.position = {10, 0};
       v_info.speed = 2;
       //Obstacle obs4_1 = Obstacle("1", {8.5, 4}, 0, 1, 0.5, 0.5, 2, 1.5);
       //obss_info.obstacles.push_back(obs4_1);
       goal = {10, 10};
-      break;}
+      break;
+    }
 
 
     case 5: // overtake
@@ -52,12 +58,12 @@ int main(int, char **) {
     case 6: // overtaken
       break;
     case 7: // multi-encounter
-     break;
+      break;
     case 8: // start in bb
       break;
     case 9: // goal in bb
       break;
-    case 10:{ // bb overlap
+    case 10: { // bb overlap
       v_info.position = {10, 0};
       v_info.speed = 2;
       Obstacle obs1 = Obstacle("1", {9, 3.7}, 0, 0, 1, 0.5, 2, 3, 3, 1);
@@ -69,7 +75,8 @@ int main(int, char **) {
       obss_info.obstacles.push_back(obs2);
       //obss_info.obstacles.push_back(obs1_3);
       goal = {10, 10};
-      break;}
+      break;
+    }
     default:
       break;
   }

@@ -206,7 +206,7 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /usr/include/c++/9/backward/auto_ptr.h \
   /usr/include/c++/9/pstl/glue_memory_defs.h \
   /usr/include/c++/9/pstl/execution_defs.h \
-  /home/samuele/graal_ws/oal/include/oal/data_structs.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
   /usr/include/eigen3/Eigen/Eigen \
   /usr/include/eigen3/Eigen/Dense \
   /usr/include/eigen3/Eigen/Core \
@@ -533,7 +533,14 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /usr/include/c++/9/list \
   /usr/include/c++/9/bits/stl_list.h \
   /usr/include/c++/9/bits/list.tcc \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
   /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
   /usr/include/c++/9/set \
   /usr/include/c++/9/bits/stl_set.h \
   /usr/include/c++/9/bits/stl_multiset.h \
@@ -550,7 +557,13 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/c++/9/bits/stl_set.h:
 
+/usr/include/c++/9/set:
+
 /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp:
+
+/home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp:
+
+/home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp:
 
 /usr/include/c++/9/bits/stl_list.h:
 
@@ -1012,6 +1025,8 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/c++/9/bits/stl_vector.h:
 
+/home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp:
+
 /usr/include/c++/9/cstdlib:
 
 /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h:
@@ -1392,15 +1407,7 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/c++/9/pstl/execution_defs.h:
 
-/usr/include/c++/9/set:
-
-/home/samuele/graal_ws/oal/include/oal/data_structs.hpp:
-
-/usr/include/eigen3/Eigen/src/Core/functors/UnaryFunctors.h:
-
-/usr/include/eigen3/Eigen/Core:
-
-/usr/include/c++/9/cassert:
+/home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp:
 
 /usr/include/eigen3/Eigen/src/SparseCore/SparseSolverBase.h:
 
@@ -1473,6 +1480,12 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 /usr/include/eigen3/Eigen/src/SparseCore/SparseView.h:
 
 /usr/include/c++/9/cstddef:
+
+/usr/include/eigen3/Eigen/src/Core/functors/UnaryFunctors.h:
+
+/usr/include/eigen3/Eigen/Core:
+
+/usr/include/c++/9/cassert:
 
 /usr/include/assert.h:
 

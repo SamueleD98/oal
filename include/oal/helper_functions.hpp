@@ -1,7 +1,9 @@
 #ifndef HELPER_HPP
 #define HELPER_HPP
 
-#include "data_structs.hpp"
+#include "data_structs/misc.hpp"
+#include "data_structs/node.hpp"
+#include "data_structs/obstacle.hpp"
 #include <set>
 
 template<typename T>
@@ -12,11 +14,10 @@ Eigen::Vector2d ComputePosition(T &element, double time) {
 
 // Compute the costs of a newly created Node,
 //  depending on the time to reach the last node and the goal position
-void UpdateCosts(Node &node, const Eigen::Vector2d &goal, double speed);
 
 // Find the vxs position in the absolute frame depending on the time instant
 void FindAbsVxs(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs);
 
-bool AlreadyExists(Node new_node, std::multiset<Node> &set);
+bool IsIn(Node new_node, std::multiset<Node> &set);
 
 #endif
