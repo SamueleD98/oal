@@ -18,5 +18,4 @@ struct ObstaclesInfo {
   std::vector<Obstacle> obstacles;
 };
 
-
 #endif

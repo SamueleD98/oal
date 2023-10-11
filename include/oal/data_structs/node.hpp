@@ -10,13 +10,13 @@
 class Node {
 public:
     Eigen::Vector2d position; //vehicle position
-    // time and costToReach are the same when the cost==time to reach the target (should we be able to manage other costs to minimize?)
+    // time and costToReach are the same when the cost==time to reach the target
     double time = -1;  // time instant
     double costToReach = -1; //cost to reach the Node
     double costToGoal = -1; //estimated cost to reach Goal
     double costTotal = -1; //g+h total cost
     std::string obs;
-    double obs_heading = -1;
+    double obs_heading = -4;
     vx_id vx;
     std::shared_ptr<Node> parent = nullptr;
     std::vector<vx_id> colregsLimitedVxs;

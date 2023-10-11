@@ -12,7 +12,7 @@ int main(int, char **) {
 
   std::cout << "Which scenario?" << std::endl;
   //std::cin  >>  scenario;
-  scenario = 1;
+  scenario = 8;
 
   switch (scenario) {
     case 1: {// static or moving obstacles, no colregs
@@ -59,8 +59,19 @@ int main(int, char **) {
       break;
     case 7: // multi-encounter
       break;
-    case 8: // start in bb
+    case 8: {// start in bb
+      v_info.position = {10, 0};
+      v_info.speed = 2;
+      Obstacle obs1_1 = Obstacle("1", {10, 2.5}, M_PI / 2, 3.12, 2, 1, 3.2, 4, 4, 1.1);
+      Obstacle obs1_4 = Obstacle("1", {10, 2.5}, -M_PI / 2, 1.9, 2, 1, 3.2, 4, 4, 1.1);
+
+      Obstacle obs1_2 = Obstacle("2", {9, 10}, M_PI, 0.5, 2, 0.5, 3.2, 5, 3.2, 3);
+      Obstacle obs1_3 = Obstacle("3", {8, 14}, M_PI * 1 / 4, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
+      obss_info.obstacles.push_back(obs1_4);
+
+      goal = {10, 20};
       break;
+    }
     case 9: // goal in bb
       break;
     case 10: { // bb overlap
@@ -112,15 +123,21 @@ int main(int, char **) {
   if (planner.ComputePath(goal, colregs, waypoints)) {
     //std::cout << "Found!" << std::endl;
     std::cout << "Found!" << std::endl;
-    while (!waypoints.empty()) {
-      Node wp = waypoints.top();
-      waypoints.pop();
-      //std::cout << "Pos: " << wp.position << std::endl;
-      //std::cout << "Time: " << wp.time << std::endl;
+    if(false){
+      while (!waypoints.empty()) {
+        Node wp = waypoints.top();
+        waypoints.pop();
+
+          std::cout << "Pos: " << wp.position.x() << "_" << wp.position.y() << std::endl;
+          std::cout << "Time: " << wp.time << std::endl;
+      }
+    }else{
+      if(planner.CheckPath(v_info.position, 0, waypoints)){
+        std::cout << "checked!!" << std::endl;
+      }
     }
   } else {
     std::cout << "Not found." << std::endl;
   }
-
 
 }

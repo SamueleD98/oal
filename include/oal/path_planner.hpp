@@ -27,21 +27,21 @@ private:
 
     // Check if the path between start and goal collide with any obstacle
     //  is standard pointer the best choice?            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    bool CheckCollision(Node start, Node &goal, std::vector<Node> *collision_points = nullptr);
+    bool CheckCollision(const Node &start, Node &goal, const std::shared_ptr<std::vector<Node>>& collision_points = nullptr);
 
     // Given a set of vertexes, find if are visible from the vehicle (ignoring other obstacles)
     static void FindVisibility(Node &node, Obstacle &obs, std::vector<Vertex> &vxs_abs);
 
-    void BuildPath(Node *it, std::stack<Node> &waypoints);
+    void BuildPath(Node goal, std::stack<Node> &waypoints);
 
     static bool FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const Eigen::Vector3d &bb_direction,
                                                const Eigen::Vector3d &start, const Eigen::Vector3d &goal, double speed,
                                                Eigen::Vector3d &collision_point);
 
-    static bool IsInBB(const Eigen::Vector2d &element_pos, Obstacle obs, double time);
+    static bool IsInBB(const Eigen::Vector2d &element_pos, const Obstacle &obs, double time);
 
     bool IsInAnyBB(const Eigen::Vector2d &element_pos, double time,
-                   std::vector<std::string> *surrounding_obs = nullptr) const;
+                   const std::shared_ptr<std::vector<std::string>>& surrounding_obs = nullptr) const;
 
     static void
     FindExitVxs(const Eigen::Vector2d &element_pos, Obstacle &obs, double time, std::vector<vx_id> &allowedVxs);
@@ -69,6 +69,8 @@ public:
 
     // Compute the path to reach the goal and fills the waypoints stack
     bool ComputePath(const Eigen::Vector2d &goal, bool colregs, std::stack<Node> &waypoints);
+
+    bool CheckPath(const Eigen::Vector2d &vh_pos, double time, std::stack<Node> &waypoints);
 
 };
 

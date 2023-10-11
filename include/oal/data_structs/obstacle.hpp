@@ -53,8 +53,8 @@ public:
         throw std::invalid_argument("Generic bounding box ratios cannot be smaller than safety one.");
       }
 
-      if (heading < 0 || heading > 2 * M_PI) {
-        throw std::invalid_argument("Obstacle heading must be expressed in radians [0, 2*pi]");
+      if (abs(heading) > M_PI) {
+        throw std::invalid_argument("Obstacle heading must be expressed in radians [-pi, +pi]");
       }
     }
 };

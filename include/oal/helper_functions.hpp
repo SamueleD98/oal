@@ -20,4 +20,5 @@ void FindAbsVxs(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs);
 
 bool IsIn(Node new_node, std::multiset<Node> &set);
 
+
 #endif
