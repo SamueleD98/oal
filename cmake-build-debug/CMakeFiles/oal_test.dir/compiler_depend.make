@@ -206,7 +206,19 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /usr/include/c++/9/backward/auto_ptr.h \
   /usr/include/c++/9/pstl/glue_memory_defs.h \
   /usr/include/c++/9/pstl/execution_defs.h \
-  /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
+  /usr/include/c++/9/stack \
+  /usr/include/c++/9/deque \
+  /usr/include/c++/9/bits/stl_deque.h \
+  /usr/include/c++/9/bits/deque.tcc \
+  /usr/include/c++/9/bits/stl_stack.h \
+  /usr/include/c++/9/set \
+  /usr/include/c++/9/bits/stl_tree.h \
+  /usr/include/c++/9/bits/node_handle.h \
+  /usr/include/c++/9/optional \
+  /usr/include/c++/9/bits/enable_special_members.h \
+  /usr/include/c++/9/bits/stl_set.h \
+  /usr/include/c++/9/bits/stl_multiset.h \
+  /usr/include/c++/9/bits/erase_if.h \
   /usr/include/eigen3/Eigen/Eigen \
   /usr/include/eigen3/Eigen/Dense \
   /usr/include/eigen3/Eigen/Core \
@@ -253,11 +265,7 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /usr/include/c++/9/unordered_map \
   /usr/include/c++/9/bits/hashtable.h \
   /usr/include/c++/9/bits/hashtable_policy.h \
-  /usr/include/c++/9/bits/node_handle.h \
-  /usr/include/c++/9/optional \
-  /usr/include/c++/9/bits/enable_special_members.h \
   /usr/include/c++/9/bits/unordered_map.h \
-  /usr/include/c++/9/bits/erase_if.h \
   /usr/include/c++/9/vector \
   /usr/include/c++/9/bits/stl_vector.h \
   /usr/include/c++/9/bits/stl_bvector.h \
@@ -454,7 +462,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /usr/include/eigen3/Eigen/Sparse \
   /usr/include/eigen3/Eigen/SparseCore \
   /usr/include/c++/9/map \
-  /usr/include/c++/9/bits/stl_tree.h \
   /usr/include/c++/9/bits/stl_map.h \
   /usr/include/c++/9/bits/stl_multimap.h \
   /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
@@ -533,37 +540,23 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /usr/include/c++/9/list \
   /usr/include/c++/9/bits/stl_list.h \
   /usr/include/c++/9/bits/list.tcc \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
-  /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
   /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
-  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
-  /usr/include/c++/9/set \
-  /usr/include/c++/9/bits/stl_set.h \
-  /usr/include/c++/9/bits/stl_multiset.h \
-  /usr/include/c++/9/stack \
-  /usr/include/c++/9/deque \
-  /usr/include/c++/9/bits/stl_deque.h \
-  /usr/include/c++/9/bits/deque.tcc \
-  /usr/include/c++/9/bits/stl_stack.h
+  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp
 
-
-/usr/include/c++/9/bits/stl_stack.h:
-
-/usr/include/c++/9/bits/stl_multiset.h:
-
-/usr/include/c++/9/bits/stl_set.h:
-
-/usr/include/c++/9/set:
 
 /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp:
 
 /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp:
 
 /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp:
+
+/home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp:
 
 /usr/include/c++/9/bits/stl_list.h:
 
@@ -600,10 +593,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_gemm_kernel.h:
 
 /usr/include/eigen3/Eigen/SparseLU:
-
-/usr/include/c++/9/bits/deque.tcc:
-
-/usr/include/eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h:
 
 /usr/include/eigen3/Eigen/src/SparseCore/SparsePermutation.h:
 
@@ -737,12 +726,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h:
 
-/usr/include/c++/9/bits/stl_tree.h:
-
-/usr/include/eigen3/Eigen/src/Geometry/Hyperplane.h:
-
-/usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
-
 /usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h:
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h:
@@ -805,11 +788,23 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/eigen3/Eigen/src/Core/StableNorm.h:
 
-/usr/include/c++/9/stack:
+/usr/include/eigen3/Eigen/src/Core/CwiseUnaryView.h:
 
-/usr/include/eigen3/Eigen/src/Cholesky/LDLT.h:
+/usr/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h:
 
-/usr/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h:
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h:
+
+/usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
+
+/usr/include/eigen3/Eigen/src/SparseCholesky/SimplicialCholesky.h:
+
+/usr/include/eigen3/Eigen/src/Core/CwiseTernaryOp.h:
+
+/usr/include/eigen3/Eigen/src/Core/Array.h:
+
+/usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
+
+/usr/include/eigen3/Eigen/src/Core/PlainObjectBase.h:
 
 /usr/include/eigen3/Eigen/src/SparseCore/SparseDenseProduct.h:
 
@@ -839,10 +834,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/asm-generic/errno.h:
 
-/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h:
-
-/usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
@@ -864,8 +855,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
 
 /usr/include/x86_64-linux-gnu/bits/sched.h:
-
-/usr/include/eigen3/Eigen/src/Core/CwiseUnaryView.h:
 
 /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h:
 
@@ -969,6 +958,14 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/time.h:
 
+/usr/include/eigen3/Eigen/src/Cholesky/LDLT.h:
+
+/usr/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h:
+
+/usr/include/c++/9/stack:
+
+/usr/include/c++/9/bits/stl_stack.h:
+
 /usr/include/stdlib.h:
 
 /usr/include/eigen3/Eigen/src/Core/Inverse.h:
@@ -1000,10 +997,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 /usr/include/eigen3/Eigen/src/Core/PermutationMatrix.h:
 
 /home/samuele/graal_ws/oal/include/oal/path_planner.hpp:
-
-/usr/include/c++/9/bits/stl_deque.h:
-
-/usr/include/c++/9/bits/ios_base.h:
 
 /usr/include/c++/9/bits/allocator.h:
 
@@ -1217,10 +1210,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/c++/9/ext/alloc_traits.h:
 
-/usr/include/c++/9/deque:
-
-/usr/include/c++/9/bits/cpp_type_traits.h:
-
 /usr/include/eigen3/Eigen/src/misc/RealSvd2x2.h:
 
 /usr/include/x86_64-linux-gnu/bits/endian.h:
@@ -1407,7 +1396,41 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/c++/9/pstl/execution_defs.h:
 
-/home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp:
+/usr/include/c++/9/bits/cpp_type_traits.h:
+
+/usr/include/c++/9/deque:
+
+/usr/include/c++/9/bits/ios_base.h:
+
+/usr/include/c++/9/bits/stl_deque.h:
+
+/usr/include/eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h:
+
+/usr/include/c++/9/bits/deque.tcc:
+
+/usr/include/c++/9/set:
+
+/usr/include/eigen3/Eigen/src/Geometry/Hyperplane.h:
+
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
+
+/usr/include/c++/9/bits/stl_tree.h:
+
+/usr/include/c++/9/bits/node_handle.h:
+
+/usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
+
+/usr/include/c++/9/optional:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
+
+/usr/include/c++/9/bits/enable_special_members.h:
+
+/usr/include/c++/9/unordered_map:
+
+/usr/include/c++/9/bits/stl_set.h:
+
+/usr/include/c++/9/bits/stl_multiset.h:
 
 /usr/include/eigen3/Eigen/src/SparseCore/SparseSolverBase.h:
 
@@ -1493,12 +1516,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 
 /usr/include/c++/9/bits/std_function.h:
 
-/usr/include/c++/9/unordered_map:
-
-/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
-
-/usr/include/c++/9/bits/enable_special_members.h:
-
 /usr/include/eigen3/Eigen/src/Geometry/Quaternion.h:
 
 /usr/include/c++/9/bits/hashtable.h:
@@ -1506,12 +1523,6 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 /usr/include/eigen3/Eigen/src/Core/Dot.h:
 
 /usr/include/c++/9/bits/hashtable_policy.h:
-
-/usr/include/c++/9/bits/node_handle.h:
-
-/usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
-
-/usr/include/c++/9/optional:
 
 /usr/include/c++/9/bits/erase_if.h:
 
@@ -1604,15 +1615,3 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
 /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h:
 
 /usr/include/eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h:
-
-/usr/include/eigen3/Eigen/src/Core/Array.h:
-
-/usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
-
-/usr/include/eigen3/Eigen/src/Core/PlainObjectBase.h:
-
-/usr/include/eigen3/Eigen/src/SparseCholesky/SimplicialCholesky.h:
-
-/usr/include/eigen3/Eigen/src/Core/CwiseTernaryOp.h:
-
-/usr/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h:

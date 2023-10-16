@@ -11,9 +11,9 @@ enum vx_id {
 
 struct Vertex {
     vx_id id;
-    Eigen::Vector2d position;
-    bool isVisible = false;
-    Eigen::Vector2d ip_position;  //intercept point position
+    Eigen::Vector2d position; //absolute
+    bool isVisible = false; //visibility from own ship
+    Eigen::Vector2d ip_position;  //intercept point position (absolute)
     double ip_time = -1; //intercept time
     //std::shared_ptr<Obstacle> obs = nullptr;
 };

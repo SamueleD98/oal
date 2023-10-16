@@ -12,13 +12,9 @@ Eigen::Vector2d ComputePosition(T &element, double time) {
   return element.position + shift;
 }
 
-// Compute the costs of a newly created Node,
-//  depending on the time to reach the last node and the goal position
+Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d& point, Obstacle& obs, double time);
 
-// Find the vxs position in the absolute frame depending on the time instant
-void FindAbsVxs(Obstacle &obs, double time, std::vector<Vertex> &vxs_abs);
-
-bool IsIn(Node new_node, std::multiset<Node> &set);
-
+// Given a direction and a Target Ship heading, returns the approaching angle of TS wrt to Own Ship
+double GetBearing(Eigen::Vector2d direction, double obs_heading);
 
 #endif

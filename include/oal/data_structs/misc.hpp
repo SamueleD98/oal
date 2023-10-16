@@ -5,9 +5,11 @@
 #include <utility>
 #include <memory>
 #include <iostream> //debug
+#include <stack>
 #include "obstacle.hpp"
 #include "node.hpp"
-#include "vertex.hpp"
+
+//#include "vertex.hpp"
 
 struct VehicleInfo {
     Eigen::Vector2d position;
@@ -15,7 +17,12 @@ struct VehicleInfo {
 };
 
 struct ObstaclesInfo {
-  std::vector<Obstacle> obstacles;
+  std::vector<std::shared_ptr<Obstacle>> obstacles;
+};
+
+struct Path {
+    std::stack<Node> waypoints;
+    std::vector<std::string> overtakingObsList;
 };
 
 #endif

@@ -163,10 +163,15 @@ CMakeFiles/oal.dir/src/path_planner.cpp.o: \
  /usr/include/c++/9/bits/atomic_lockfree_defines.h \
  /usr/include/c++/9/backward/auto_ptr.h \
  /usr/include/c++/9/pstl/glue_memory_defs.h \
- /usr/include/c++/9/pstl/execution_defs.h \
- /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
- /usr/include/eigen3/Eigen/Eigen /usr/include/eigen3/Eigen/Dense \
- /usr/include/eigen3/Eigen/Core \
+ /usr/include/c++/9/pstl/execution_defs.h /usr/include/c++/9/stack \
+ /usr/include/c++/9/deque /usr/include/c++/9/bits/stl_deque.h \
+ /usr/include/c++/9/bits/deque.tcc /usr/include/c++/9/bits/stl_stack.h \
+ /usr/include/c++/9/set /usr/include/c++/9/bits/stl_tree.h \
+ /usr/include/c++/9/bits/node_handle.h /usr/include/c++/9/optional \
+ /usr/include/c++/9/bits/enable_special_members.h \
+ /usr/include/c++/9/bits/stl_set.h /usr/include/c++/9/bits/stl_multiset.h \
+ /usr/include/c++/9/bits/erase_if.h /usr/include/eigen3/Eigen/Eigen \
+ /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
  /usr/include/c++/9/complex /usr/include/c++/9/cmath /usr/include/math.h \
@@ -202,10 +207,7 @@ CMakeFiles/oal.dir/src/path_planner.cpp.o: \
  /usr/include/c++/9/functional /usr/include/c++/9/bits/std_function.h \
  /usr/include/c++/9/unordered_map /usr/include/c++/9/bits/hashtable.h \
  /usr/include/c++/9/bits/hashtable_policy.h \
- /usr/include/c++/9/bits/node_handle.h /usr/include/c++/9/optional \
- /usr/include/c++/9/bits/enable_special_members.h \
- /usr/include/c++/9/bits/unordered_map.h \
- /usr/include/c++/9/bits/erase_if.h /usr/include/c++/9/vector \
+ /usr/include/c++/9/bits/unordered_map.h /usr/include/c++/9/vector \
  /usr/include/c++/9/bits/stl_vector.h \
  /usr/include/c++/9/bits/stl_bvector.h /usr/include/c++/9/bits/vector.tcc \
  /usr/include/c++/9/bits/stl_algo.h \
@@ -391,8 +393,8 @@ CMakeFiles/oal.dir/src/path_planner.cpp.o: \
  /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
  /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
  /usr/include/eigen3/Eigen/Sparse /usr/include/eigen3/Eigen/SparseCore \
- /usr/include/c++/9/map /usr/include/c++/9/bits/stl_tree.h \
- /usr/include/c++/9/bits/stl_map.h /usr/include/c++/9/bits/stl_multimap.h \
+ /usr/include/c++/9/map /usr/include/c++/9/bits/stl_map.h \
+ /usr/include/c++/9/bits/stl_multimap.h \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \
  /usr/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h \
@@ -468,15 +470,11 @@ CMakeFiles/oal.dir/src/path_planner.cpp.o: \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
  /usr/include/c++/9/list /usr/include/c++/9/bits/stl_list.h \
  /usr/include/c++/9/bits/list.tcc \
+ /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
- /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
  /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
- /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
- /usr/include/c++/9/set /usr/include/c++/9/bits/stl_set.h \
- /usr/include/c++/9/bits/stl_multiset.h /usr/include/c++/9/stack \
- /usr/include/c++/9/deque /usr/include/c++/9/bits/stl_deque.h \
- /usr/include/c++/9/bits/deque.tcc /usr/include/c++/9/bits/stl_stack.h
+ /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp

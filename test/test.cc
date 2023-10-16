@@ -12,18 +12,26 @@ int main(int, char **) {
 
   std::cout << "Which scenario?" << std::endl;
   //std::cin  >>  scenario;
-  scenario = 8;
+  scenario = 1;
+
+  /* TODO scenario
+   * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
+   *    ..does it return 'no path found' as it should?
+   *
+  */
 
   switch (scenario) {
-    case 1: {// static or moving obstacles, no colregs
+    case 1: {// static or moving obstacles
       v_info.position = {10, 0};
       v_info.speed = 2;
       Obstacle obs1_1 = Obstacle("1", {10, 5}, M_PI / 2, 0.5, 2, 0.5, 3.2, 9, 3.2, 3, true);
       Obstacle obs1_2 = Obstacle("2", {9, 10}, M_PI, 0.5, 2, 0.5, 3.2, 5, 3.2, 3);
       Obstacle obs1_3 = Obstacle("3", {8, 14}, M_PI * 1 / 4, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
-      obss_info.obstacles.push_back(obs1_1);
-      obss_info.obstacles.push_back(obs1_2);
-      obss_info.obstacles.push_back(obs1_3);
+
+
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_2));
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_3));
       goal = {10, 20};
       break;
     }
@@ -64,10 +72,7 @@ int main(int, char **) {
       v_info.speed = 2;
       Obstacle obs1_1 = Obstacle("1", {10, 2.5}, M_PI / 2, 3.12, 2, 1, 3.2, 4, 4, 1.1);
       Obstacle obs1_4 = Obstacle("1", {10, 2.5}, -M_PI / 2, 1.9, 2, 1, 3.2, 4, 4, 1.1);
-
-      Obstacle obs1_2 = Obstacle("2", {9, 10}, M_PI, 0.5, 2, 0.5, 3.2, 5, 3.2, 3);
-      Obstacle obs1_3 = Obstacle("3", {8, 14}, M_PI * 1 / 4, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
-      obss_info.obstacles.push_back(obs1_4);
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_4));
 
       goal = {10, 20};
       break;
@@ -82,8 +87,8 @@ int main(int, char **) {
 
       //Obstacle obs1_2 = Obstacle("2", {10.5, 3.5}, M_PI, 0, 1, 0.5, 4, 1.6);
       //Obstacle obs1_3 = Obstacle("3", {9, 4}, M_PI, 0, 0.5, 0.5, 4, 1.6);
-      obss_info.obstacles.push_back(obs1);
-      obss_info.obstacles.push_back(obs2);
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1));
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs2));
       //obss_info.obstacles.push_back(obs1_3);
       goal = {10, 10};
       break;
@@ -117,10 +122,16 @@ int main(int, char **) {
 
 
 
-  path_planner planner(v_info, obss_info);
+  static path_planner planner(v_info, obss_info);
+
+  VehicleInfo v_info2;
+  v_info2.position = {10, 0};
+  v_info2.speed = 2;
+
+  Path path1;
   std::stack<Node> waypoints;
   std::cout << "Calling library!" << std::endl;
-  if (planner.ComputePath(goal, colregs, waypoints)) {
+  if (planner.ComputePath(goal, colregs, path1)) {
     //std::cout << "Found!" << std::endl;
     std::cout << "Found!" << std::endl;
     if(false){
