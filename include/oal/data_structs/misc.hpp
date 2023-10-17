@@ -9,11 +9,19 @@
 #include "obstacle.hpp"
 #include "node.hpp"
 
-//#include "vertex.hpp"
+typedef std::shared_ptr<Obstacle> obs_ptr;
 
 struct VehicleInfo {
     Eigen::Vector2d position;
-    double speed;
+    std::vector<double> velocities;
+    //double speed;
+
+    double GetMaxSpeed(){
+      auto max_ptr = std::min_element(velocities.begin(), velocities.end());
+      auto max_v = std::distance(velocities.begin(), max_ptr);
+      return *max_ptr;
+      //vxs_abs[min_v].isVisible = true;
+    }
 };
 
 struct ObstaclesInfo {
@@ -24,5 +32,8 @@ struct Path {
     std::stack<Node> waypoints;
     std::vector<std::string> overtakingObsList;
 };
+
+
+
 
 #endif

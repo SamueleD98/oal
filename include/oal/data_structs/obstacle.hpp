@@ -7,6 +7,7 @@
 #include <iostream> //debug
 
 #include "data_structs/vertex.hpp"
+#include "tpoint.hpp"
 
 class Obstacle {
 //private:
@@ -33,6 +34,10 @@ public:
 
     void FindAbsVxs(double time, std::vector<Vertex> &vxs_abs);
 
+    Eigen::Vector2d GetProjectionInLocalFrame(TPoint &time_point);
+
+    bool IsInBB(TPoint& time_point);
+
 //public:
     Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y,
              double bb_y_ratio, double bb_x_bow_ratio, double bb_x_stern_ratio, double safety_bb_ratio,
@@ -54,6 +59,8 @@ public:
         throw std::invalid_argument("Obstacle heading must be expressed in radians [-pi, +pi]");
       }
     }
+
+
 };
 
 

@@ -24,7 +24,7 @@ add_library(oal SHARED
         src/helper_functions.cpp
         src/node.cpp
         src/obstacle.cpp
-)
+        )
 
 # find dependencies
 find_package(ament_cmake REQUIRED)

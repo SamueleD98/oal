@@ -79,3 +79,25 @@ void Obstacle::FindLocalVxs(const Eigen::Vector2d &vhPos) {
   vxs.push_back(vx3);
   vxs.push_back(vx4);
 }
+
+Eigen::Vector2d Obstacle::GetProjectionInLocalFrame(TPoint& time_point) {
+  Eigen::Vector2d element_obs = time_point.pos - ComputePosition(*this, time_point.time);
+  Eigen::Rotation2D<double> rotation(heading);
+  return rotation.inverse() * element_obs;
+}
+
+bool Obstacle::IsInBB(TPoint &time_point) {
+  Eigen::Vector2d bodyObs_element = GetProjectionInLocalFrame(time_point);
+
+  // asymmetric bb x dimension computation
+  double theta = atan2(bodyObs_element.y(), bodyObs_element.x()); // Approaching angle, error for (0,0)
+  // choose comparing dimension based on theta
+  bool IsAhead = (abs(theta) <= M_PI / 2);
+  if (IsAhead) {
+    return (abs(bodyObs_element.x()) < abs(vxs[0].position.x()) &&
+            abs(bodyObs_element.y()) < abs(vxs[0].position.y()));
+  } else {
+    return (abs(bodyObs_element.x()) < abs(vxs[2].position.x()) &&
+            abs(bodyObs_element.y()) < abs(vxs[2].position.y()));
+  }
+}

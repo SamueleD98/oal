@@ -1,12 +1,14 @@
 #ifndef OAL_VERTEX_HPP
 #define OAL_VERTEX_HPP
 
+
 // Vertex indexes map
 enum vx_id {
     FR = 0, // forward right
     FL = 1, // forward left
     RR = 2, // rear right
-    RL = 3  // rear left
+    RL = 3, // rear left
+    NA = 5  // NOT ASSIGNED, Default
 };
 
 struct Vertex {

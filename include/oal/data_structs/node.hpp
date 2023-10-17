@@ -19,10 +19,12 @@ public:
     double costTotal = -1; //total cost
     std::string obs;
     double obs_heading = -4;
-    vx_id vx;
+    vx_id vx = NA;
     std::shared_ptr<Node> parent = nullptr;
     std::vector<vx_id> currentObsLimitedVxs;
     std::vector<std::string> overtakingObsList;
+
+    double vh_speed;
 
     Node()= default;
 
@@ -35,12 +37,15 @@ public:
     }
 
     // Set estimated cost and total cost according to own ship speed
-    void UpdateCosts(const Eigen::Vector2d &goal, double vh_speed);
+    void UpdateCosts(const Eigen::Vector2d &goal);
 
     // Given some nodes, get the closer
     void GetCloser(const std::shared_ptr<std::vector<Node>>& nodes_list, Node& closer ) const;
 
     bool IsIn(std::multiset<Node> &set);
+
+    void FindFisibilityVxs(Obstacle obs, std::vector<Vertex> &vxs_abs);
+
 };
 
 

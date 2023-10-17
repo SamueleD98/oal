@@ -469,9 +469,9 @@ CMakeFiles/oal.dir/src/helper_functions.cpp.o: \
  /usr/include/c++/9/bits/stl_stack.h \
  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
+ /home/samuele/graal_ws/oal/include/oal/data_structs/tpoint.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
  /usr/include/c++/9/set /usr/include/c++/9/bits/stl_set.h \
  /usr/include/c++/9/bits/stl_multiset.h \
  /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
- /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
  /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp

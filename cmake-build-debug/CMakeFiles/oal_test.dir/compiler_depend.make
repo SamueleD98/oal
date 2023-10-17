@@ -543,14 +543,16 @@ CMakeFiles/oal_test.dir/test/test.cc.o: /home/samuele/graal_ws/oal/test/test.cc 
   /home/samuele/graal_ws/oal/include/oal/data_structs/misc.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
+  /home/samuele/graal_ws/oal/include/oal/data_structs/tpoint.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp \
   /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp \
-  /home/samuele/graal_ws/oal/include/oal/data_structs/node.hpp \
   /home/samuele/graal_ws/oal/include/oal/data_structs/obstacle.hpp
 
 
 /home/samuele/graal_ws/oal/include/oal/helper_functions.hpp:
+
+/home/samuele/graal_ws/oal/include/oal/data_structs/tpoint.hpp:
 
 /home/samuele/graal_ws/oal/include/oal/data_structs/vertex.hpp:
 

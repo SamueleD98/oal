@@ -2,7 +2,7 @@
 #define HELPER_HPP
 
 #include "data_structs/misc.hpp"
-#include "data_structs/node.hpp"
+
 #include "data_structs/obstacle.hpp"
 #include <set>
 
