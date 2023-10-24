@@ -1,8 +1,13 @@
 # OAL - Obstacle Avoidance Library
 
-The library allows computing waypoints to reach a goal, avoiding moving obstacles.
+The library computes a colregs-compliant trajectory to a goal, avoiding static and moving obstacles.
 
-## Main files
+## News
+
+- Every reachable node is expanded with a set of (given) different velocities: the result is a trajectory with mixed velocities (sometimes slower gets to the goal sooner)
+- ..
+
+## Main files (not up to date)
 
 - DataStructs, groups the definition of the used structures:
     - VehicleInfo, keeps info such as the position and speed of the vehicle. The struct is meant to be upgradable
@@ -31,14 +36,7 @@ The library allows computing waypoints to reach a goal, avoiding moving obstacle
 
 ## Plots
 
-By saving some data during the execution I managed to write a Python script (should be in src) to visualize the position
-of the objects in the main temporal instants. Here is an example (the obstacles speed is 0):
-![Screenshot from 2023-08-04 19-37-11](https://github.com/SamueleD98/oal/assets/28822110/49a516e2-9ec3-45a8-9d1b-cb6d716a0168)
 
-The red dot is the vehicle. Also, the safety and maximum bounding box are shown.
-
-Here is an example with moving obstacles:
-![Screenshot from 2023-08-05 13-12-59](https://github.com/SamueleD98/oal/assets/28822110/e671a79e-a710-4bd0-a516-be01c5f3d21d)
 
 In order to check the correctness of the CheckCollision function, I wrote a script to visualize the bounding boxes and
 the vehicle path. Here an example:
@@ -46,25 +44,14 @@ the vehicle path. Here an example:
 
 ## Notes
 
-As expected, an obstacle going through the goal will crash into the vehicle (look below). Still I will further explore
-this situation to make sure it was not the vehicle to crash into the obstacle.
-![Screenshot from 2023-08-05 12-58-38](https://github.com/SamueleD98/oal/assets/28822110/35e7df1a-1307-4d52-b4d0-e2e41c4beefc)
-
-About variables name: should I use the underscore (e.g. id_) even for structs with public attributes? (I need to fix
-most of the names since some of them are with the underscore and some are not)
-
-I'm checking the validity of some of the lib input (such as the obstacle dimension to be positive) by throwing 'std::
-invalid_argument' exceptions. Is it ok?
 
 For now, I'm keeping obstacle attributes as public since I need them to be easily accessible for the plots. In the final
 version, I will set them as private.
 
 ## Current limits
 
-- The vehicle is a dimensionless point
-- The vehicle has to be faster than every vehicle
 - Vehicle and obstacles speed/heading are considered constants
-- Overlapping bounding boxes results in algorithm failure
+- Obstacles heading and speed are equivalent
 - ..
 
 ## Building and installing
