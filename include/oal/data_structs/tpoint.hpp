@@ -4,11 +4,13 @@
 #include <eigen3/Eigen/Eigen>
 
 
-struct TPoint{
+struct TPoint {
     Eigen::Vector2d pos;
     double time = 0;
+
     TPoint() = default;
-    TPoint(Eigen::Vector2d pos, double time) : pos(std::move(pos)), time(time){}
+
+    TPoint(Eigen::Vector2d pos, double time) : pos(std::move(pos)), time(time) {}
 };
 
 

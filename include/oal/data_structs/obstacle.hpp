@@ -27,7 +27,8 @@ public:
     bool higher_priority;
 
     //
-    void SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow, double &bb_dim_y) const;
+    void SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
+                 double &bb_dim_y) const;
 
     // Compute size of bb according to distance from own ship
     void FindLocalVxs(const Eigen::Vector2d &vhPos);
@@ -36,7 +37,7 @@ public:
 
     Eigen::Vector2d GetProjectionInLocalFrame(TPoint &time_point);
 
-    bool IsInBB(TPoint& time_point);
+    bool IsInBB(TPoint &time_point);
 
 //public:
     Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y,

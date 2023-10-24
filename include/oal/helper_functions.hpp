@@ -12,7 +12,7 @@ Eigen::Vector2d ComputePosition(T &element, double time) {
   return element.position + shift;
 }
 
-Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d& point, Obstacle& obs, double time);
+Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d &point, Obstacle &obs, double time);
 
 // Given a direction and a Target Ship heading, returns the approaching angle of TS wrt to Own Ship
 double GetBearing(Eigen::Vector2d direction, double obs_heading);

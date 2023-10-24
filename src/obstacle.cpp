@@ -1,12 +1,13 @@
 #include "data_structs/obstacle.hpp"
 #include "helper_functions.hpp"
 
-void Obstacle::SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow, double &bb_dim_y) const  {
+void Obstacle::SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
+                       double &bb_dim_y) const {
   double bb_ratio_x;
-  if(isAhead){
+  if (isAhead) {
     bb_dim_x_stern = dim_x / 2 * bb_x_stern_ratio;
     bb_ratio_x = bb_x_bow_ratio;
-  }else{
+  } else {
     bb_dim_x_bow = dim_x / 2 * bb_x_bow_ratio;
     bb_ratio_x = bb_x_stern_ratio;
   }
@@ -28,11 +29,11 @@ void Obstacle::SetSize(double dist_x, double dist_y, bool isAhead, double &bb_di
     bb_dim_y = dist_y * 2;
   }
   if (x_between && !y_max) {
-    bb_dim_y = dist_x;
+    bb_dim_x = dist_x;
   }
-  if(isAhead){
+  if (isAhead) {
     bb_dim_x_bow = bb_dim_x;
-  }else{
+  } else {
     bb_dim_x_stern = bb_dim_x;
   }
 }
@@ -80,7 +81,7 @@ void Obstacle::FindLocalVxs(const Eigen::Vector2d &vhPos) {
   vxs.push_back(vx4);
 }
 
-Eigen::Vector2d Obstacle::GetProjectionInLocalFrame(TPoint& time_point) {
+Eigen::Vector2d Obstacle::GetProjectionInLocalFrame(TPoint &time_point) {
   Eigen::Vector2d element_obs = time_point.pos - ComputePosition(*this, time_point.time);
   Eigen::Rotation2D<double> rotation(heading);
   return rotation.inverse() * element_obs;
