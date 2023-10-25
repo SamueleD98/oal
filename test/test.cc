@@ -1,4 +1,5 @@
 
+#include <random>
 #include "path_planner.hpp"
 
 std::vector<double> generateRange(double start, double end, double step) {
@@ -16,7 +17,7 @@ int main(int, char **) {
   Eigen::Vector2d goal;
   ObstaclesInfo obss_info;
 
-  bool colregs = false;
+  bool colregs = true;
   int scenario;
 
   std::cout << "Which scenario?" << std::endl;
@@ -29,16 +30,21 @@ int main(int, char **) {
    *
   */
 
-  srand(time(nullptr));
-
   switch (scenario) {
     case 1: {// rand static or moving obstacles
       v_info.position = {10, 0};
 
-      for (auto i = 1; i < 10; i++) {
-        double speed = rand() % 10;
-        double heading = rand() % 628 - 314;
-        Obstacle obs = Obstacle(std::to_string(i), {rand() % 20, rand() % 20}, heading / 100, speed / 10, 2, 0.5, 3.5,
+      // Seed with a real random value, if available
+      std::random_device r;
+
+      // Choose a random mean between 1 and 6
+      std::default_random_engine e1(r());
+      std::uniform_real_distribution<double> pos_gen(-20, 20);
+      std::uniform_real_distribution<double> speed_gen(0, 2);
+      std::uniform_real_distribution<double> heading_gen(-M_PI, M_PI);
+
+      for (auto i = 1; i < 17; i++) {
+        Obstacle obs = Obstacle(std::to_string(i), {pos_gen(e1), pos_gen(e1)}, heading_gen(e1), speed_gen(e1), 2, 0.5, 3.5,
                                 6, 3.5, 3);
         obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs));
       }

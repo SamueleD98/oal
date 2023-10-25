@@ -1,7 +1,5 @@
 #include "path_planner.hpp"
 
-//#include <utility>
-
 // Compute the path to reach the goal
 bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colregs, Path &path) {
   noCrossList = path.overtakingObsList;
@@ -19,14 +17,13 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   Node goal, current;
 
   // Set the bounding box dimension based on the vehicle start distance from the obstacles
-  for (const std::shared_ptr<Obstacle> &obs: obss_info_.obstacles) {
+  for (const std::shared_ptr<Obstacle>& obs: obss_info_.obstacles) {
     obs->FindLocalVxs(v_info_.position);
   }
 
   // Root node(s) setup
-  for (double &speed: v_info_.velocities) {
-    if (!RootSetup(speed, goal_position, open_set)) return false;
-  }
+  if (!RootSetup(goal_position, open_set)) return false;
+
   reachable_full_set = open_set;
   // Goal node setup
   goal.position = goal_position;
@@ -102,7 +99,6 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
 }
 
 bool path_planner::CheckFinal(const Node &start, Node &goal) {
-  //std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
   std::vector<obs_ptr> s_obs;
   double goal_time = start.time + (goal.position - start.position).norm() / start.vh_speed;
   if (IsInAnyBB(TPoint(goal.position, goal_time), std::make_shared<std::vector<obs_ptr>>(s_obs))) {
@@ -161,28 +157,26 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
       return false;
     }
     goal.currentObsLimitedVxs.push_back(FR);
+  } else if (abs(theta) >= OvertakingAngle) {
+    // overtaking
+    goal.overtakingObsList.push_back(goal.obs_ptr->id);
+    // avoid future crossings
   } else {
-    if (abs(theta) >= OvertakingAngle) {
-      // overtaking
-      goal.overtakingObsList.push_back(goal.obs_ptr->id);
-      // avoid future crossings
+    if (theta > 0) {
+      // crossing from right, stand on
+      if (goal.vx == RR || goal.vx == RL) {
+        // should stand on (does it make sense to ignore completely obs that should give way?)
+        return false;
+      }
     } else {
-      if (theta > 0) {
-        // crossing from right, stand on
-        if (goal.vx == RR || goal.vx == RL) {
-          // should stand on (does it make sense to ignore completely obs that should give way?)
+      if (theta < 0) {
+        // crossing from left, give way
+        if (goal.vx == FR || goal.vx == FL) {
+          // should give way
           return false;
         }
-      } else {
-        if (theta < 0) {
-          // crossing from left, give way
-          if (goal.vx == FR || goal.vx == FL) {
-            // should give way
-            return false;
-          }
-          goal.currentObsLimitedVxs.push_back(FR);
-          goal.currentObsLimitedVxs.push_back(FL);
-        }
+        goal.currentObsLimitedVxs.push_back(FR);
+        goal.currentObsLimitedVxs.push_back(FL);
       }
     }
   }
@@ -534,57 +528,72 @@ bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, double time, std::st
   return true;
 }
 
-bool path_planner::RootSetup(double speed, const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set) {
+bool path_planner::RootSetup(const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set) {
+  bool find_new = false;
+  std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
+  IsInAnyBB(TPoint(v_info_.position, 0), surrounding_obs);
+  if (!surrounding_obs->empty()) {
+    if (surrounding_obs->size() > 1) return false; // The starting point is in a number of different bb, at the moment no solution
+    // TODO HERE YOU SHOULD CHECK IF IT COMES FROM BEHIND AND IGNORE IT
+    find_new = true;
+  }
   Node root;
   root.position = v_info_.position;
   root.time = 0;
-  root.vh_speed = speed;
-  root.UpdateCosts(goal_position);
-
-  std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
-  if (IsInAnyBB(TPoint(root.position, 0), surrounding_obs)) {
-    if (surrounding_obs->size() > 1) {
-      // The starting point is in a number of different bb, at the moment no solutions
-      return false;
+  for (double &speed: v_info_.velocities) {
+    root.vh_speed = speed;
+    root.UpdateCosts(goal_position);
+    if (!find_new) {
+      open_set.insert(root);
+    }else {
+      // Get the two vxs, to aim to, in order to exit the bb
+      std::shared_ptr<Obstacle> obs = surrounding_obs->at(0);
+      std::vector<vx_id> allowedVxs;
+      FindExitVxs(root.position, obs, 0, allowedVxs);
+      // Look for the best vx depending on the optimal heading
+      //  (if vehicle actual heading is later added as attribute, may be better than optimal heading)
+      Eigen::Vector2d path_vector = goal_position - v_info_.position;
+      double desired_vh_heading = atan2(path_vector.y(), path_vector.x());
+      // Angles between d_vh_h and the two vxs
+      double bearingVx1 =
+              desired_vh_heading -
+              atan2(obs->vxs[allowedVxs[0]].position.y(), obs->vxs[allowedVxs[0]].position.x()) +
+              obs->heading;
+      double bearingVx2 =
+              desired_vh_heading -
+              atan2(obs->vxs[allowedVxs[1]].position.y(), obs->vxs[allowedVxs[1]].position.x()) +
+              obs->heading;
+      vx_id exit_vx_id;
+      if (abs(bearingVx1) < abs(bearingVx2)) {
+        exit_vx_id = allowedVxs[0];
+      } else {
+        exit_vx_id = allowedVxs[1];
+      }
+      // If usv is able to intercept it, add the exit vx as next (and only) node
+      std::vector<Vertex> vxs_abs;
+      obs->FindAbsVxs(0, vxs_abs);
+      vxs_abs[exit_vx_id].isVisible = true;
+      FindInterceptPoints(root, *obs, vxs_abs); //Compute when every visible vertex is intercepted
+      if(!vxs_abs.empty()){
+        while(!vxs_abs.empty()){
+          Vertex vx = *vxs_abs.begin();
+          vxs_abs.erase(vxs_abs.begin());
+          // Save new node
+          Node newstart(vx.ip_position, obs, vx.id, 0 + vx.ip_time);
+          newstart.vh_speed = speed;
+          newstart.UpdateCosts(goal_position);
+          // Creating a pointer (to root node) that will later be copied inside the opens_set
+          std::shared_ptr<Node> parent = std::make_shared<Node>(root);
+          newstart.parent = parent;
+          // Remove root and add the first waypoint out of the bb
+          open_set.insert(newstart);
+        }
+      }else{
+        // else ignore being in the bb, nothing it can do
+        open_set.insert(root);
+      }
     }
-    std::shared_ptr<Obstacle> obs = surrounding_obs->at(0);
-    std::vector<vx_id> allowedVxs;
-    FindExitVxs(root.position, obs, 0, allowedVxs);
-    // Look for the best vx between the two now available, depending on the optimal heading
-    //  (if vehicle actual heading is later added as attribute, may be better than optimal heading)
-    Eigen::Vector2d path_vector = goal_position - v_info_.position;
-    double theta = atan2(path_vector.y(), path_vector.x());
-    double bearingVx1 =
-            theta - (atan2(obs->vxs[allowedVxs[0]].position.y(), obs->vxs[allowedVxs[0]].position.x()) + obs->heading);
-    double bearingVx2 =
-            theta - (atan2(obs->vxs[allowedVxs[1]].position.y(), obs->vxs[allowedVxs[1]].position.x()) + obs->heading);
-    vx_id exit_vx_id;
-    if (abs(bearingVx1) < abs(bearingVx2)) {
-      exit_vx_id = allowedVxs[0];
-    } else {
-      exit_vx_id = allowedVxs[1];
-    }
-    // If usv is able to intercept it, add the exit vx as next (and only) node
-    std::vector<Vertex> vxs_abs;
-    obs->FindAbsVxs(0, vxs_abs);
-    vxs_abs[exit_vx_id].isVisible = true;
-    FindInterceptPoints(root, *obs, vxs_abs); //Compute when every visible vertex is intercepted
-    if (!vxs_abs.empty()) {
-      Vertex vx = vxs_abs[0];
-      // Save new node
-      Node newstart(vx.ip_position, obs, vx.id, 0 + vx.ip_time);
-      newstart.vh_speed = root.vh_speed;
-      newstart.UpdateCosts(goal_position);
-      // Creating a pointer (to root node) that will later be copied inside the opens_set
-      std::shared_ptr<Node> parent = std::make_shared<Node>(root);
-      newstart.parent = parent;
-      // Remove root and add the first waypoint out of the bb
-      //open_set.erase(open_set.begin());
-      open_set.insert(newstart);
-      return true;
-    }// else ignore being in the bb, nothing it can do
   }
-  open_set.insert(root);
   return true;
 }
 

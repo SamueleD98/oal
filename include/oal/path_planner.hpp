@@ -43,7 +43,7 @@ private:
     static void
     FindExitVxs(const Eigen::Vector2d &element_pos, const obs_ptr &obs, double time, std::vector<vx_id> &allowedVxs);
 
-    bool RootSetup(double speed, const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set);
+    bool RootSetup(const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set);
 
     // Check if path between nodes is colregs compliant
     bool CheckColreg(const Node &start, Node &goal) const;
