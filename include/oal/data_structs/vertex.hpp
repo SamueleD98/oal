@@ -2,6 +2,8 @@
 #define OAL_VERTEX_HPP
 
 
+#include "tpoint.hpp"
+
 // Vertex indexes map
 enum vx_id {
     FR = 0, // forward right
@@ -15,9 +17,9 @@ struct Vertex {
     vx_id id;
     Eigen::Vector2d position; //absolute
     bool isVisible = false; //visibility from own ship
-    Eigen::Vector2d ip_position;  //intercept point position (absolute)
-    double ip_time = -1; //intercept time
-    //std::shared_ptr<Obstacle> obs = nullptr;
+    TPoint intercept_point;
+    /*Eigen::Vector2d ip_position;  //intercept point position (absolute)
+    double ip_time = -1; //intercept time*/
 };
 
 

@@ -18,60 +18,65 @@ public:
     double costToReach = -1; //cost to reach the Node
     double costToGoal = -1; //estimated cost to reach Goal
     double costTotal = -1; //total cost
-    double vh_speed = 0;
+    double vh_speed = 0; //vehicle speed from this node to next
     std::shared_ptr<Obstacle> obs_ptr = nullptr;
     vx_id vx = NA;
     std::shared_ptr<Node> parent = nullptr;
-    std::vector<vx_id> currentObsLimitedVxs;
-    std::vector<std::string> overtakingObsList;
+    std::vector<vx_id> currentObsLimitedVxs; //not viable vxs depending on maneuver
+    std::vector<std::string> overtakingObsList; //list of obs to overtake from origin up to node
 
     Node() = default;
 
-    Node(Eigen::Vector2d pos, const std::shared_ptr<Obstacle> &obs_ptr, vx_id vx, double time)
-            : position(std::move(pos)), obs_ptr(obs_ptr), vx(vx), time(time) {}
-    //obs(obs_ptr->id), obs_heading(obs_ptr->heading)
-
-    /*Node(const Node &other){
-      position = other.position;
-      time = other.time;
-      vx = other.vx;
-      if(other.parent != nullptr) vh_speed = other.parent->vh_speed;
-    }*/
+    Node(const TPoint& point, const std::shared_ptr<Obstacle> &obs_ptr, vx_id vx, const Node& parent_node)
+            : obs_ptr(obs_ptr), vx(vx) {
+      position = point.pos;
+      time = parent_node.time +  point.time;
+      SetParent(parent_node);
+    }
 
     // Used to order nodes in set according to total cost to reach the goal
     bool operator<(const Node &other) const {
       return costTotal < other.costTotal;
     }
 
+    // Nodes are equal if position, time, speed, obs and vx are the same (small epsilon involved for position and time)
     bool operator==(const Node &other) const {
-      Eigen::Vector2d pos_rounded(std::round(position[0] * 100) / 100, std::round(position[1] * 100) / 100);
-      Eigen::Vector2d other_pos_rounded(std::round(other.position[0] * 100) / 100,
-                                        std::round(other.position[1] * 100) / 100);
-      return other_pos_rounded == pos_rounded && obs_ptr.get() == other.obs_ptr.get() && vx == other.vx &&
-             time == other.time && vh_speed == other.vh_speed;
+      return (position-other.position).norm()<0.001 && obs_ptr.get() == other.obs_ptr.get() && vx == other.vx &&
+             time-other.time<0.01 && vh_speed == other.vh_speed;
     }
 
     // Set estimated cost and total cost according to own ship speed
     void UpdateCosts(const Eigen::Vector2d &goal);
 
-    // Given some nodes, get the closer
+    // Given some nodes, get the closer one
     void GetCloser(const std::shared_ptr<std::vector<Node>> &nodes_list, Node &closer) const;
 
+    // Check if its obs and vx have already been visited in its chain of nodes
     bool IsUnique(Node other);
 
+    // Given a set of vertexes, find which are visible from the vehicle when in this state (node)
     void FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs);
 
-    bool IsInSet(std::multiset<Node> &set);
+    // Check if newly created node already exists in set
+    // TODO if it does, maybe it has better properties (less change in direction, smaller max change, less speed change, smaller average speed)
+    bool IsInSet(std::multiset<Node> &set) const;
+
+    // Set node parent and inherit its overtakingObsList
+    void SetParent(const Node& parent_node){
+      parent = std::make_shared<Node>(parent_node);
+      overtakingObsList = parent_node.overtakingObsList;
+    }
 
     void print() const {
       std::cout << std::setprecision(3);
       Node node = *this;
-      std::cout << "NODE: " << std::endl;
+      if(node.parent != nullptr) std::cout <<std::endl << "  trace: "<<std::endl;
       while (node.parent != nullptr) {
-        std::cout << " Time: " << node.time << "  Pos: " << node.position.x() << " " << node.position.y();
-        std::cout << " Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  speed: " << node.vh_speed
-                  << std::endl;
-//        std::cout<<std::endl;
+        std::cout << "   - time: " << node.time << "  Pos: " << node.position.x() << " " << node.position.y();
+        if(node.obs_ptr != nullptr){
+          std::cout << "   Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  speed: " << node.vh_speed;
+        }
+        std::cout << std::endl;
         node = *node.parent;
       }
     }

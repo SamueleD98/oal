@@ -14,14 +14,6 @@ typedef std::shared_ptr<Obstacle> obs_ptr;
 struct VehicleInfo {
     Eigen::Vector2d position;
     std::vector<double> velocities;
-    //double speed;
-
-    /*double GetMaxSpeed(){
-      auto max_ptr = std::min_element(velocities.begin(), velocities.end());
-      auto max_v = std::distance(velocities.begin(), max_ptr);
-      return *max_ptr;
-      //vxs_abs[min_v].isVisible = true;
-    }*/
 };
 
 struct ObstaclesInfo {
@@ -31,6 +23,25 @@ struct ObstaclesInfo {
 struct Path {
     std::stack<Node> waypoints;
     std::vector<std::string> overtakingObsList;
+    std::vector<std::string> overtakenObsList;
+
+    bool empty() const{
+      return waypoints.empty();
+    }
+
+    Node top(){
+      return waypoints.top();
+    }
+
+    void pop(){
+      // When reached a node, delete it from Path and set the obstacle as overtaken to avoid future crossing
+      Node nd = waypoints.top();
+      if(nd.obs_ptr != nullptr){
+        auto pos = std::find(overtakingObsList.begin(), overtakingObsList.end(), nd.obs_ptr->id);
+        if (pos != overtakingObsList.end())  overtakenObsList.push_back(nd.obs_ptr->id);
+      }
+      waypoints.pop();
+    }
 };
 
 

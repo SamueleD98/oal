@@ -102,3 +102,22 @@ bool Obstacle::IsInBB(TPoint &time_point) {
             abs(bodyObs_element.y()) < abs(vxs[2].position.y()));
   }
 }
+
+std::string Obstacle::plotStuff(double time) {
+  std::ostringstream stream;
+  stream << "Obs_" << id << std::endl;
+  Eigen::Vector2d position = ComputePosition(*this, time);
+  stream << "Position_" << position.x() << "_" << position.y() << std::endl;
+  stream << "Heading_" << heading << std::endl;
+  stream << "Dimx_" << dim_x << std::endl;
+  stream << "Dimy_" << dim_y << std::endl;
+  stream << "Safety_" << safety_bb_ratio << std::endl;
+  std::vector<Vertex> vxs_abs;
+  FindAbsVxs(time, vxs_abs);
+  for (Vertex &vx: vxs_abs) {
+    stream << "Vx_" << vx.position.x() << "_" << vx.position.y() << std::endl;
+  }
+  //std::cout << vxs_abs[wp.vx].position.x() << " " << vxs_abs[wp.vx].position.y() << " _ "  << std::endl;
+  stream << "-" << std::endl;
+  return stream.str();
+}

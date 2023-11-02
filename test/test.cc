@@ -17,12 +17,11 @@ int main(int, char **) {
   Eigen::Vector2d goal;
   ObstaclesInfo obss_info;
 
-  bool colregs = true;
   int scenario;
 
-  std::cout << "Which scenario?" << std::endl;
+  //std::cout << "Which scenario?" << std::endl;
   //std::cin  >>  scenario;
-  scenario = 1;
+  scenario = 2;
 
   /* TODO scenario
    * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
@@ -36,32 +35,30 @@ int main(int, char **) {
 
       // Seed with a real random value, if available
       std::random_device r;
-
       // Choose a random mean between 1 and 6
       std::default_random_engine e1(r());
       std::uniform_real_distribution<double> pos_gen(-20, 20);
       std::uniform_real_distribution<double> speed_gen(0, 2);
       std::uniform_real_distribution<double> heading_gen(-M_PI, M_PI);
 
-      for (auto i = 1; i < 17; i++) {
+      for (auto i = 1; i < 15; i++) {
         Obstacle obs = Obstacle(std::to_string(i), {pos_gen(e1), pos_gen(e1)}, heading_gen(e1), speed_gen(e1), 2, 0.5, 3.5,
                                 6, 3.5, 3);
+        obs.print();
         obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs));
       }
 
       goal = {10, 20};
       break;
     }
+
     case 2: {// head on
       v_info.position = {10, 0};
-      Obstacle obs1_1 = Obstacle("1", {10, 5}, M_PI / 2, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
-      Obstacle obs1_2 = Obstacle("2", {9, 10}, M_PI, 0.5, 2, 0.5, 3.2, 5, 3.2, 3);
-      Obstacle obs1_3 = Obstacle("3", {8, 14}, M_PI * 1 / 4, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
+      Obstacle obs1_1 = Obstacle("1", {10.5, 13}, -M_PI / 2, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
+      Obstacle obs1_2 = Obstacle("1", {10.5, 13}, 0, 0, 2, 0.5, 3.2, 9, 3.2, 3);
 
-
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
+//      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
       obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_2));
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_3));
       goal = {10, 20};
       break;
     }
@@ -118,6 +115,23 @@ int main(int, char **) {
       goal = {10, 10};
       break;
     }
+
+    case 11: { // goal surrounded
+      v_info.position = {10, 0};
+      Obstacle obs1_1 = Obstacle("1", {10, 9}, 0, 0, 2, 0.5, 2, 2, 2, 1);
+      Obstacle obs1_2 = Obstacle("2", {10, 11}, 0, 0, 2, 0.5, 2, 2, 2, 1);
+      Obstacle obs1_3 = Obstacle("3", {11, 10}, 0, 0, 2, 0.5, 2, 2, 2, 1);
+      Obstacle obs1_4 = Obstacle("4", {9, 10}, 0, 0, 2, 0.5, 2, 2, 2, 1);
+
+
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_2));
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_3));
+      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_4));
+      goal = {10, 10};
+      break;
+
+    }
     default:
       break;
   }
@@ -147,35 +161,60 @@ int main(int, char **) {
 
 
   v_info.velocities = generateRange(1, 1, 0.1);
-  static path_planner planner(v_info, obss_info);
+  path_planner planner1(v_info, obss_info);
+  path_planner planner2(v_info, obss_info);
+
 
   Path path1;
-  std::cout << "Calling library!" << std::endl;
-  if (planner.ComputePath(goal, colregs, path1)) {
-    //std::cout << "Found!" << std::endl;
-    std::cout << "Found!" << std::endl;
-    if (true) {
-      std::stack<Node> waypoints = path1.waypoints;
-      int s_count = -1;
-      double s_value = 0;
-      while (!waypoints.empty()) {
-        Node wp = waypoints.top();
-        waypoints.pop();
-        //std::cout << "Pos: " << wp.position.x() << "_" << wp.position.y() << std::endl;
-        //std::cout << "Time: " << wp.time << std::endl;
-        //std::cout << "Speed: " << wp.vh_speed << std::endl;
-        if (wp.vh_speed != s_value) {
-          s_count++;
-          s_value = wp.vh_speed;
-        }
-      }
-      std::cout << "The planner changed the velocity " << s_count << " times." << std::endl;
-      if (planner.CheckPath(v_info.position, 0, path1.waypoints)) {
-        std::cout << "Checked!!" << std::endl;
+  std::cout <<std::endl << "Colregs: false";
+  if (planner1.ComputePath(goal, false, path1)) {
+    int s_count = -1;
+    double s_value = 0;
+    Node wp;
+    while (!path1.empty()) {
+      wp = path1.top();
+      path1.pop();
+      if (wp.vh_speed != s_value) {
+        s_count++;
+        s_value = wp.vh_speed;
       }
     }
+    std::cout << "  time: " << wp.time;
+    if(wp.time<=0) throw std::invalid_argument("wtf");
+    std::cout << "  speed_change: " << s_count<< std::endl;
+    /*if (planner.CheckPath(v_info.position, 0, path1)) {
+      std::cout << "Checked!!" << std::endl;
+    }*/
   } else {
-    std::cout << "Not found." << std::endl;
+    std::cout <<std::endl << "Not found." << std::endl;
   }
+
+  Path path2;
+  std::cout <<std::endl << "Colregs: true";
+  if (planner2.ComputePath(goal, true, path2)) {
+    int s_count = -1;
+    double s_value = 0;
+    Node wp;
+    while (!path2.empty()) {
+      wp = path2.top();
+      path2.pop();
+      if (wp.vh_speed != s_value) {
+        s_count++;
+        s_value = wp.vh_speed;
+      }
+    }
+    std::cout << "  Time: " << wp.time;
+    if(wp.time<=0) throw std::invalid_argument("wtf");
+    std::cout << "  speed_change: " << s_count<< std::endl;
+    if (planner2.CheckPath(v_info.position, 0, path2)) {
+      //std::cout << "Checked!!" << std::endl;
+    }
+  } else {
+    std::cout <<std::endl<< "Not found." << std::endl;
+  }
+
+  // this after i'm done following the path (even a part of it)
+  auto priorOvertakenVesselsList = path2.overtakingObsList;
+
 
 }

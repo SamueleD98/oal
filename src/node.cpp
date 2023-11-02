@@ -27,9 +27,7 @@ void Node::GetCloser(const std::shared_ptr<std::vector<Node>> &nodes_list, Node 
 }
 
 bool Node::IsUnique(Node other) {
-  Eigen::Vector2d node_pos((int) position[0] * 100, (int) position[1] * 100);
   while (other.parent != nullptr) {
-    Eigen::Vector2d other_pos((int) other.position[0] * 100, (int) other.position[1] * 100);
     if (/*node_pos == other_pos && */obs_ptr.get() == other.obs_ptr.get() && vx == other.vx) {
       return false;
     }
@@ -61,8 +59,8 @@ void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) 
   std::vector<double> thetas;  // angles wrt abs frame
   std::vector<Eigen::Vector2d> vxs_vh;
 
-  for (Vertex &vx: vxs_abs) {
-    Eigen::Vector2d vx_vh = vx.position - position; //if 0 there's a problem
+  for (Vertex &vert: vxs_abs) {
+    Eigen::Vector2d vx_vh = vert.position - position; //if 0 there's a problem
     double sign = obs_vh.x() * vx_vh.y() -
                   obs_vh.y() * vx_vh.x(); // same as z value of a cross product (and so its direction)
     double theta = sign / abs(sign) * acos(obs_vh.normalized().dot(vx_vh.normalized()));
@@ -91,14 +89,18 @@ void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) 
   }
 }
 
-bool Node::IsInSet(std::multiset<Node> &set) {
-  Eigen::Vector2d node_pos(std::round(position[0] * 100) / 100, std::round(position[1] * 100) / 100);
+bool Node::IsInSet(std::multiset<Node> &set) const {
   for (const auto &node: set) {
-    Eigen::Vector2d old_node_pos(std::round(node.position[0] * 100) / 100, std::round(node.position[1] * 100) / 100);
     if (node == *this) {
-      node.print();
+      /*node.print();
       this->print();
-      std::cout << "___" << std::endl;
+      std::cout << "___" << std::endl;*/
+      return true;
+    }
+    if ((node.position-this->position).norm()<0.001 && this->time>node.time) {
+      // TODO this solves the surrounded goal loop problem, but I think it shrinks the solution space
+      // also, in that scenario, colregs true solution still sucks: it should end way before, but
+      //  it looks for a new goal and the best est. is reached after waaay too much
       return true;
     }
   }

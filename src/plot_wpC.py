@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
 
-log = open("/home/samuele/graal_ws/oal/cmake-build-debug/WPlog.txt", "r")
+log = open("/home/samuele/graal_ws/oal/cmake-build-debug/WPlogC.txt", "r")
 # log = open("log.txt", "r")
 Lines = log.readlines()
 data = {}

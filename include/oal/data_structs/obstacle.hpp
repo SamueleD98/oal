@@ -26,18 +26,27 @@ public:
 
     bool higher_priority;
 
-    //
+    // Set bb size according to own ship distance
     void SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
                  double &bb_dim_y) const;
 
-    // Compute size of bb according to distance from own ship
+    // Compute local position of bb vxs
     void FindLocalVxs(const Eigen::Vector2d &vhPos);
 
+    // Project vxs position in world frame
     void FindAbsVxs(double time, std::vector<Vertex> &vxs_abs);
 
+    // Project absolute position in obstacle frame (depends on time-instant)
     Eigen::Vector2d GetProjectionInLocalFrame(TPoint &time_point);
 
+    // Check if point is in obs bb (depends on time-instant)
     bool IsInBB(TPoint &time_point);
+
+    std::string plotStuff(double time);
+    void print() const{
+//      std::cout<<id<<std::endl<< position.x()<<" "<<position.y()<<std::endl<<heading<<std::endl<<speed<<std::endl;
+      std::cout<<"Obstacle(\""<<id<<"\", {"<<position.x()<<", "<<position.y()<<"}, "<<heading<<", "<<speed<<"2, 0.5, 2, 2, 2, 1);"<<std::endl;
+    }
 
 //public:
     Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y,
