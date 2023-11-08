@@ -60,9 +60,13 @@ private:
 public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.
 
-    path_planner(VehicleInfo v_info, ObstaclesInfo obss_info)
-            : v_info_(std::move(v_info)), obss_info_(std::move(obss_info)) {
+    path_planner(VehicleInfo v_info, const std::vector<Obstacle>& obstacles)
+            : v_info_(std::move(v_info)) {
       colregs_compliance = false;
+      for(const auto& obs : obstacles){
+        obss_info_.obstacles.push_back(std::make_shared<Obstacle>(obs));
+      }
+
       // Plot stuff
       {
         if (plotCKFile_.is_open()) {

@@ -412,56 +412,60 @@ void path_planner::BuildPath(const Node &goal, Path &path) {    // Build path fr
 // Given some obstacle vertexes, find the intercept points
 void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
                                        std::vector<Vertex> &vxs_abs) {
-
-  for (auto it = vxs_abs.begin(); it != vxs_abs.end();/*nothing here*/) {
-    if (it->isVisible) {
-      // algorithm described in
-      // 'A Three-Layered Architecture for Real Time Path Planning and Obstacle Avoidance for Surveillance USVs Operating in Harbour Fields'
-      Eigen::Vector2d vertex_vehicle = it->position - start.position;
-
-      double theta;
-      if(obstacle.speed<0.001){
-        theta = atan2(vertex_vehicle.y(), vertex_vehicle.x()); // error for (0,0)
+  std::vector<Vertex> vxs;
+  Eigen::Vector3d bb_timeDirection(obstacle.speed * cos(obstacle.heading), obstacle.speed * sin(obstacle.heading), 1);
+  for (auto i = 0; i < 4; i++) {
+    if (vxs_abs[i].isVisible) {
+      std::vector<double> t_instants;
+      Eigen::Vector2d vertex_vehicle = vxs_abs[i].position - start.position;
+      if (obstacle.speed<0.001){
+        t_instants.push_back(vertex_vehicle.norm()/start.vh_speed);
       }else{
-        double k = atan2(-vertex_vehicle.y(), vertex_vehicle.x()); // error for (0,0)
-        if(vertex_vehicle.x()<0){
-          k += M_PI;
-        }
-        // the argument of the asin has to be between -1 and +1
-        double asin_arg = obstacle.speed /start.vh_speed *sin(obstacle.heading + k);
-        if (abs(asin_arg) > 1) {
-          it = vxs_abs.erase(it);
+        Eigen::Vector3d vertex_vehicle_3d(vertex_vehicle.x(), vertex_vehicle.y(), 0);
+        double gamma_sqr = (pow(start.vh_speed, 2) + 1) / pow(pow(start.vh_speed, 2) + 1, 2);
+        double c2 = 1 - gamma_sqr * bb_timeDirection.dot(bb_timeDirection);
+        double test = bb_timeDirection.dot(bb_timeDirection);
+        double c1 = -gamma_sqr * bb_timeDirection.dot(vertex_vehicle_3d);
+        double c0 = -gamma_sqr * vertex_vehicle_3d.dot(vertex_vehicle_3d);
+        double delta = pow(c1, 2) - c0 * c2;
+        if (abs(c2) > 0.001 && delta >= 0) {
+          // 2 points
+          double t1 = (-c1 + sqrt(delta)) / c2;
+          double t2 = (-c1 - sqrt(delta)) / c2;
+          if (t1 > 0) t_instants.push_back(t1);
+          if (t2 > 0 && abs(t1 - t2) > 0.001) t_instants.push_back(t2);
+        } else if (abs(c2) <= 0.001 && abs(c1) > 0.001) {
+          // 1 point
+          double t = -c0 / (2 * c1);
+          if (t > 0) t_instants.push_back(t);
+        } else {
+          // no points
           continue;
         }
-        theta = asin(asin_arg) - k;
       }
-      double t;
-      if (abs(vertex_vehicle.x()) > 0.001) { // should it be something more than 0?
-        t = vertex_vehicle.x() / (start.vh_speed * cos(theta) - obstacle.speed * cos(obstacle.heading));
-      } else {
-        t = vertex_vehicle.y() / (start.vh_speed * sin(theta) - obstacle.speed * sin(obstacle.heading));
-      }
-      if (t > 0 && t < MAX_TIME) {
+      std::vector<Eigen::Vector3d> points;
+      for (double t: t_instants) {
+        Eigen::Vector3d point_3d = Get3dPos(vxs_abs[i]) + bb_timeDirection * t;
         TPoint intercept_point;
-        intercept_point.pos.x() = start.position.x() + start.vh_speed * cos(theta) * t;
-        intercept_point.pos.y() = start.position.y() + start.vh_speed * sin(theta) * t;
-        intercept_point.time = t;
-        // Check if point is in an obstacle bb => overlapping bbs, ignore the point
+        intercept_point.pos.x() = point_3d.x();
+        intercept_point.pos.y() = point_3d.y();
+        intercept_point.time = point_3d.z();
         std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
         bool isInAnyBB = IsInAnyBB(intercept_point, surrounding_obs);
-        if (isInAnyBB && surrounding_obs->size() <2 && surrounding_obs->at(0)->id == obstacle.id) {
+        if (isInAnyBB && surrounding_obs->size() == 1 && surrounding_obs->at(0)->id == obstacle.id) {
+          // if vx is in its own bb, ignore
           isInAnyBB = false;
         }
         // Save the point
         if (!isInAnyBB) {
-          it->intercept_point = intercept_point;
-          ++it;
-          continue;
+          Vertex vx = vxs_abs[i];
+          vx.intercept_point = intercept_point;
+          vxs.push_back(vx);
         }
       }
     }
-    it = vxs_abs.erase(it);
   }
+  vxs_abs = vxs;
 }
 
 bool path_planner::IsInAnyBB(TPoint time_point,

@@ -15,13 +15,13 @@ int main(int, char **) {
 
   VehicleInfo v_info;
   Eigen::Vector2d goal;
-  ObstaclesInfo obss_info;
+  std::vector<Obstacle> obstacles;
 
   int scenario;
 
   //std::cout << "Which scenario?" << std::endl;
   //std::cin  >>  scenario;
-  scenario = 2;
+  scenario = 3;
 
   /* TODO scenario
    * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
@@ -45,28 +45,28 @@ int main(int, char **) {
         Obstacle obs = Obstacle(std::to_string(i), {pos_gen(e1), pos_gen(e1)}, heading_gen(e1), speed_gen(e1), 2, 0.5, 3.5,
                                 6, 3.5, 3);
         obs.print();
-        obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs));
+        obstacles.push_back(obs);
       }
 
       goal = {10, 20};
       break;
     }
 
-    case 2: {// head on
+    case 2: {// head on WORKS (clear differences with/without Colregs)
       v_info.position = {10, 0};
       Obstacle obs1_1 = Obstacle("1", {10.5, 13}, -M_PI / 2, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
-      Obstacle obs1_2 = Obstacle("1", {10.5, 13}, 0, 0, 2, 0.5, 3.2, 9, 3.2, 3);
+//      Obstacle obs1_2 = Obstacle("1", {10.5, 13}, 0, 0, 2, 0.5, 3.2, 9, 3.2, 3);
 
 //      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_2));
+      obstacles.push_back(obs1_1);
       goal = {10, 20};
       break;
     }
     case 3: {// TS crossing from right
       v_info.position = {10, 0};
-      //Obstacle obs3_1 = Obstacle("1", {12.5, 4}, M_PI, 1, 0.5, 0.5, 2, 1.5);
-      //obss_info.obstacles.push_back(obs3_1);
-      goal = {10, 10};
+      Obstacle obs3_1 = Obstacle("1", {24.4009, 10}, M_PI*6/7, 0.5, 2, 0.5, 3.2, 9, 3.2, 3);
+      obstacles.push_back(obs3_1);
+      goal = {10, 20};
       break;
     }
     case 4: {// crossing left
@@ -88,7 +88,7 @@ int main(int, char **) {
       v_info.position = {10, 0};
       Obstacle obs1_1 = Obstacle("1", {10, 2.5}, M_PI / 2, 3.12, 2, 1, 3.2, 4, 4, 1.1);
       Obstacle obs1_4 = Obstacle("1", {10, 2}, -M_PI / 2, 1, 2, 1, 3.2, 4, 4, 1.1);
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_4));
+      obstacles.push_back(obs1_4);
 
       goal = {10, 20};
       break;
@@ -97,7 +97,7 @@ int main(int, char **) {
       v_info.position = {10, 0};
       Obstacle obs1_1 = Obstacle("1", {10, 18}, M_PI / 2, 0, 2, 0.5, 3.2, 9, 3.2, 3, true);
 
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
+      obstacles.push_back(obs1_1);
 
       goal = {10, 20};
       break;
@@ -109,8 +109,8 @@ int main(int, char **) {
 
       //Obstacle obs1_2 = Obstacle("2", {10.5, 3.5}, M_PI, 0, 1, 0.5, 4, 1.6);
       //Obstacle obs1_3 = Obstacle("3", {9, 4}, M_PI, 0, 0.5, 0.5, 4, 1.6);
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1));
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs2));
+      obstacles.push_back(obs1);
+      obstacles.push_back(obs2);
       //obss_info.obstacles.push_back(obs1_3);
       goal = {10, 10};
       break;
@@ -124,10 +124,10 @@ int main(int, char **) {
       Obstacle obs1_4 = Obstacle("4", {9, 10}, 0, 0, 2, 0.5, 2, 2, 2, 1);
 
 
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_1));
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_2));
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_3));
-      obss_info.obstacles.push_back(std::make_shared<Obstacle>(obs1_4));
+      obstacles.push_back(obs1_1);
+      obstacles.push_back(obs1_2);
+      obstacles.push_back(obs1_3);
+      obstacles.push_back(obs1_4);
       goal = {10, 10};
       break;
 
@@ -161,9 +161,8 @@ int main(int, char **) {
 
 
   v_info.velocities = generateRange(1, 1, 0.1);
-  path_planner planner1(v_info, obss_info);
-  path_planner planner2(v_info, obss_info);
-
+  path_planner planner1(v_info, obstacles);
+  path_planner planner2(v_info, obstacles);
 
   Path path1;
   std::cout <<std::endl << "Colregs: false";
@@ -213,7 +212,7 @@ int main(int, char **) {
     std::cout <<std::endl<< "Not found." << std::endl;
   }
 
-  // this after i'm done following the path (even a part of it)
+  // this after I'm done following the path (even a part of it)
   auto priorOvertakenVesselsList = path2.overtakingObsList;
 
 
