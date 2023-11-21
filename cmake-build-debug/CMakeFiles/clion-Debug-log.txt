@@ -1,0 +1,10 @@
+/home/samuele/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/231.9161.40/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/samuele/graal_ws/oal -B /home/samuele/graal_ws/oal/cmake-build-debug
+-- Found ament_cmake: 1.1.6 (/opt/ros/galactic/share/ament_cmake/cmake)
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Found std_msgs: 2.2.4 (/opt/ros/galactic/share/std_msgs/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Found rosidl_adapter: 2.2.3 (/opt/ros/galactic/share/rosidl_adapter/cmake)
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/samuele/graal_ws/oal/cmake-build-debug
