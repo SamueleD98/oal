@@ -421,12 +421,16 @@ void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
       if (obstacle.speed<0.001){
         t_instants.push_back(vertex_vehicle.norm()/start.vh_speed);
       }else{
-        Eigen::Vector3d vertex_vehicle_3d(vertex_vehicle.x(), vertex_vehicle.y(), 0);
+        /*Eigen::Vector3d vertex_vehicle_3d(vertex_vehicle.x(), vertex_vehicle.y(), 0);
         double gamma_sqr = (pow(start.vh_speed, 2) + 1) / pow(pow(start.vh_speed, 2) + 1, 2);
         double c2 = 1 - gamma_sqr * bb_timeDirection.dot(bb_timeDirection);
-        double test = bb_timeDirection.dot(bb_timeDirection);
-        double c1 = -gamma_sqr * bb_timeDirection.dot(vertex_vehicle_3d);
+        double c1 = - gamma_sqr * bb_timeDirection.dot(vertex_vehicle_3d);
         double c0 = -gamma_sqr * vertex_vehicle_3d.dot(vertex_vehicle_3d);
+        */
+        double det = pow(start.vh_speed,2)+1;
+        double c2 = 1 - (pow(bb_timeDirection.x(),2)+pow(bb_timeDirection.y(),2)+1)/det;
+        double c1 = - (bb_timeDirection.x()*vertex_vehicle.x()+bb_timeDirection.y()*vertex_vehicle.y())/det;
+        double c0 = - (pow(vertex_vehicle.x(),2)+pow(vertex_vehicle.y(),2))/det;
         double delta = pow(c1, 2) - c0 * c2;
         if (abs(c2) > 0.001 && delta >= 0) {
           // 2 points
