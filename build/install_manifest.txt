@@ -1,5 +1,0 @@
-/usr/local/lib/liboal.so
-/usr/local/include/oal/path_planner.hpp
-/usr/local/include/oal/data_structs.hpp
-/usr/local/share/oal/cmake/oalConfig.cmake
-/usr/local/share/oal/cmake/oalConfig-debug.cmake
