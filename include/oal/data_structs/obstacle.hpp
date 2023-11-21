@@ -14,7 +14,8 @@ class Obstacle {
 public:
     std::string id;
     Eigen::Vector2d position;  //absolute position at time 0
-    double heading;
+    double head;
+    double vel_dir;
     double speed;
     double dim_x;
     double dim_y;
@@ -45,14 +46,14 @@ public:
     std::string plotStuff(double time);
     void print() const{
 //      std::cout<<id<<std::endl<< position.x()<<" "<<position.y()<<std::endl<<heading<<std::endl<<speed<<std::endl;
-      std::cout<<"Obstacle(\""<<id<<"\", {"<<position.x()<<", "<<position.y()<<"}, "<<heading<<", "<<speed<<"2, 0.5, 2, 2, 2, 1);"<<std::endl;
+//std::cout<<"Obstacle(\""<<id<<"\", {"<<position.x()<<", "<<position.y()<<"}, "<<heading<<", "<<speed<<"2, 0.5, 2, 2, 2, 1);"<<std::endl;
     }
 
 //public:
-    Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double dim_x, double dim_y,
+    Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double vel_dir, double dim_x, double dim_y,
              double bb_y_ratio, double bb_x_bow_ratio, double bb_x_stern_ratio, double safety_bb_ratio,
              bool high_priority = false)
-            : id(std::move(name)), position(std::move(position)), heading(heading), speed(speed), dim_x(dim_x),
+            : id(std::move(name)), position(std::move(position)), head(heading), speed(speed), vel_dir(vel_dir), dim_x(dim_x),
               dim_y(dim_y), bb_y_ratio(bb_y_ratio), bb_x_bow_ratio(bb_x_bow_ratio), bb_x_stern_ratio(bb_x_stern_ratio),
               safety_bb_ratio(safety_bb_ratio), higher_priority(high_priority) {
 

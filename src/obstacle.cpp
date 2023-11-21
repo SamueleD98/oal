@@ -43,7 +43,7 @@ void Obstacle::FindAbsVxs(double time, std::vector<Vertex> &vxs_abs) {
   for (const Vertex &vx: vxs) {
     Vertex vx_abs;
     vx_abs.id = vx.id;
-    Eigen::Rotation2D<double> rotation(heading);
+    Eigen::Rotation2D<double> rotation(head);
     vx_abs.position = current_obs_position + rotation * vx.position;
     vxs_abs.push_back(vx_abs);
   }
@@ -83,7 +83,7 @@ void Obstacle::FindLocalVxs(const Eigen::Vector2d &vhPos) {
 
 Eigen::Vector2d Obstacle::GetProjectionInLocalFrame(TPoint &time_point) {
   Eigen::Vector2d element_obs = time_point.pos - ComputePosition(*this, time_point.time);
-  Eigen::Rotation2D<double> rotation(heading);
+  Eigen::Rotation2D<double> rotation(head);
   return rotation.inverse() * element_obs;
 }
 
@@ -108,7 +108,8 @@ std::string Obstacle::plotStuff(double time) {
   stream << "Obs_" << id << std::endl;
   Eigen::Vector2d position = ComputePosition(*this, time);
   stream << "Position_" << position.x() << "_" << position.y() << std::endl;
-  stream << "Heading_" << heading << std::endl;
+  stream << "Heading_" << head << std::endl;
+  stream << "Vel_" << vel_dir << std::endl;
   stream << "Dimx_" << dim_x << std::endl;
   stream << "Dimy_" << dim_y << std::endl;
   stream << "Safety_" << safety_bb_ratio << std::endl;

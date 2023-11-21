@@ -33,6 +33,8 @@ for line in Lines:
         position = (float(Values[1]), float(Values[2]))
     elif key == "Heading":
         theta = float(Values[1])
+    elif key == "Vel":
+        theta_vel = float(Values[1])
     elif key == "Safety":
         safety = float(Values[1])
     elif key == "Vx":
@@ -44,7 +46,7 @@ for line in Lines:
         dimy = float(Values[1])
     elif key == "-":
         data[timestamp].append(
-            {"obs": id, "position": position, "heading": theta, "safety": safety, "vx1": vxs[0], "vx2": vxs[1],
+            {"obs": id, "position": position, "heading": theta, "vel_dir": theta_vel, "safety": safety, "vx1": vxs[0], "vx2": vxs[1],
              "vx3": vxs[2], "vx4": vxs[3], "dimx": dimx, "dimy": dimy})
 
 bk = data
@@ -86,6 +88,7 @@ for timestamp in timeinstants:
     for polygon_data in pol_data:
         # print(polygon_data)
         heading = float(polygon_data['heading'])
+        vel_dir = float(polygon_data['vel_dir'])
         dim_x = float(polygon_data['dimx'])
         dim_y = float(polygon_data['dimy'])
         safety = float(polygon_data['safety'])
@@ -143,6 +146,9 @@ for timestamp in timeinstants:
 
         plt.arrow(centroid_x, centroid_y, 0.3 * math.cos(heading), 0.3 * math.sin(heading), head_width=0.1,
                   head_length=0.1, color='blue')
+
+        plt.arrow(centroid_x, centroid_y, 0.3 * math.cos(vel_dir), 0.3 * math.sin(vel_dir), head_width=0.1,
+                  head_length=0.1, color='red')
 
         ax.text(centroid_x - sdim_x / 2 - 0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
         ax.axis('equal')

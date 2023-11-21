@@ -181,7 +181,7 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
   }
   // Get the approaching angle of own ship wrt target ship
   Eigen::Vector2d path = goal.position - start.position;
-  double theta = GetBearing(path, goal.obs_ptr->heading);
+  double theta = GetBearing(path, goal.obs_ptr->head);
   // Check colregs depending on situation
   if (abs(theta) <= HeadOnAngle) {
     // head on
@@ -236,7 +236,7 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
     Obstacle obs = *obs_ptr.get();
 
     if (colregs_compliance) {
-      double theta = GetBearing(Eigen::Vector2d(path.x(), path.y()), obs.heading);
+      double theta = GetBearing(Eigen::Vector2d(path.x(), path.y()), obs.head);
       if (theta > HeadOnAngle && theta < OvertakingAngle && !obs_ptr->higher_priority && obs_ptr->speed>0.01) {
         // crossing from right, stand on
         continue;
@@ -244,7 +244,7 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
     }
 
     // Compute obstacle direction in x-y-time
-    Eigen::Vector3d bb_direction(obs.speed * cos(obs.heading), obs.speed * sin(obs.heading), 1);
+    Eigen::Vector3d bb_direction(obs.speed * cos(obs.vel_dir), obs.speed * sin(obs.vel_dir), 1);
     //bb_direction.normalize(); no, because multiplied by t' it returns the position at time t'
 
     // Find vertexes in abs frame
@@ -413,7 +413,7 @@ void path_planner::BuildPath(const Node &goal, Path &path) {    // Build path fr
 void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
                                        std::vector<Vertex> &vxs_abs) {
   std::vector<Vertex> vxs;
-  Eigen::Vector3d bb_timeDirection(obstacle.speed * cos(obstacle.heading), obstacle.speed * sin(obstacle.heading), 1);
+  Eigen::Vector3d bb_timeDirection(obstacle.speed * cos(obstacle.vel_dir), obstacle.speed * sin(obstacle.vel_dir), 1);
   for (auto i = 0; i < 4; i++) {
     if (vxs_abs[i].isVisible) {
       std::vector<double> t_instants;
@@ -587,11 +587,11 @@ bool path_planner::RootSetup(const Eigen::Vector2d &goal_position, std::multiset
       double bearingVx1 =
               desired_vh_heading -
               atan2(surr_obs->vxs[allowedVxs[0]].position.y(), surr_obs->vxs[allowedVxs[0]].position.x()) +
-              surr_obs->heading;
+              surr_obs->head;
       double bearingVx2 =
               desired_vh_heading -
               atan2(surr_obs->vxs[allowedVxs[1]].position.y(), surr_obs->vxs[allowedVxs[1]].position.x()) +
-              surr_obs->heading;
+              surr_obs->head;
       vx_id exit_vx_id;
       if (abs(bearingVx1) < abs(bearingVx2)) {
         exit_vx_id = allowedVxs[0];

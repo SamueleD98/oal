@@ -8,7 +8,7 @@
 
 template<typename T>
 Eigen::Vector2d ComputePosition(T &element, double time) {
-  Eigen::Vector2d shift(element.speed * time * cos(element.heading), element.speed * time * sin(element.heading));
+  Eigen::Vector2d shift(element.speed * time * cos(element.vel_dir), element.speed * time * sin(element.vel_dir));
   return element.position + shift;
 }
 
