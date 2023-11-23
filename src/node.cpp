@@ -1,5 +1,5 @@
-#include "data_structs/node.hpp"
-#include "helper_functions.hpp"
+#include "oal/data_structs/node.hpp"
+#include "oal/helper_functions.hpp"
 
 void Node::UpdateCosts(const Eigen::Vector2d &goal) {
   costToReach = time; //if the cost is the time to reach the target

@@ -6,26 +6,26 @@
 #include <memory>
 #include <iostream> //debug
 
-#include "data_structs/vertex.hpp"
-#include "tpoint.hpp"
+#include "oal/data_structs/vertex.hpp"
+#include "oal/data_structs/tpoint.hpp"
 
 class Obstacle {
 //private:
 public:
     std::string id;
     Eigen::Vector2d position;  //absolute position at time 0
-    double head;
-    double vel_dir;
-    double speed;
-    double dim_x;
-    double dim_y;
-    double bb_x_bow_ratio;
-    double bb_x_stern_ratio;
-    double bb_y_ratio;
-    double safety_bb_ratio; // safety_bb_dim / bb_dim
+    double head{};
+    double vel_dir{};
+    double speed{};
+    double dim_x{};
+    double dim_y{};
+    double bb_x_bow_ratio{};
+    double bb_x_stern_ratio{};
+    double bb_y_ratio{};
+    double safety_bb_ratio{}; // safety_bb_dim / bb_dim
     std::vector<Vertex> vxs; // local position (wrt obs)
 
-    bool higher_priority;
+    bool higher_priority{};
 
     // Set bb size according to own ship distance
     void SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
@@ -50,6 +50,8 @@ public:
     }
 
 //public:
+    Obstacle()= default;
+
     Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double vel_dir, double dim_x, double dim_y,
              double bb_y_ratio, double bb_x_bow_ratio, double bb_x_stern_ratio, double safety_bb_ratio,
              bool high_priority = false)

@@ -7,13 +7,12 @@
 #include <stack>
 #include <set>
 #include <eigen3/Eigen/Eigen>
-#include "data_structs/misc.hpp"
-#include "helper_functions.hpp"
+#include "oal/data_structs/misc.hpp"
+#include "oal/helper_functions.hpp"
 
 #define MAX_TIME 10000
 #define HeadOnAngle (15*(M_PI/180))
 #define OvertakingAngle (112*(M_PI/180))
-
 
 class path_planner {
 private:

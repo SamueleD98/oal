@@ -1,4 +1,4 @@
-#include "helper_functions.hpp"
+#include "oal/helper_functions.hpp"
 
 double GetBearing(Eigen::Vector2d dir, double obs_heading) {
   double heading_v = atan2(dir.y(), dir.x()); // error for (0,0)

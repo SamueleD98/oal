@@ -1,9 +1,8 @@
 #ifndef HELPER_HPP
 #define HELPER_HPP
 
-#include "data_structs/misc.hpp"
-
-#include "data_structs/obstacle.hpp"
+#include "oal/data_structs/misc.hpp"
+#include "oal/data_structs/obstacle.hpp"
 #include <set>
 
 template<typename T>

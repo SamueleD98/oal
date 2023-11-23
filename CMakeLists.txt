@@ -27,11 +27,11 @@ add_library(oal SHARED
         )
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(std_msgs REQUIRED)
-include_directories(${std_msgs_INCLUDE_DIRS})
+# find_package(ament_cmake REQUIRED)
+# find_package(std_msgs REQUIRED)
+# include_directories(${std_msgs_INCLUDE_DIRS})
 
-set_target_properties(oal PROPERTIES LINKER_LANGUAGE CXX)
+# set_target_properties(oal PROPERTIES LINKER_LANGUAGE CXX)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build

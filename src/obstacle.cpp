@@ -1,5 +1,5 @@
-#include "data_structs/obstacle.hpp"
-#include "helper_functions.hpp"
+#include "oal/data_structs/obstacle.hpp"
+#include "oal/helper_functions.hpp"
 
 void Obstacle::SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
                        double &bb_dim_y) const {

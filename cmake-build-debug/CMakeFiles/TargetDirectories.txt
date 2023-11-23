@@ -1,8 +1,5 @@
 /home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/oal.dir
-/home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/uninstall.dir
-/home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/oal_uninstall.dir
 /home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/oal_test.dir
-/home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/test.dir
 /home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/edit_cache.dir
 /home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/rebuild_cache.dir
 /home/samuele/graal_ws/oal/cmake-build-debug/CMakeFiles/list_install_components.dir

@@ -7,8 +7,8 @@
 #include <iostream> //debug
 #include <set>
 #include <iomanip>
-#include "vertex.hpp"
-#include "obstacle.hpp"
+#include "oal/data_structs/vertex.hpp"
+#include "oal/data_structs/obstacle.hpp"
 
 class Node {
 public:

@@ -6,5 +6,5 @@ CXX_FLAGS = -g -fPIC   -std=gnu++17
 
 CXX_DEFINES = -Doal_EXPORTS
 
-CXX_INCLUDES = -I/opt/ros/galactic/include -I/home/samuele/graal_ws/oal/include -I/home/samuele/graal_ws/oal/include/oal -I/home/samuele/graal_ws/oal/src 
+CXX_INCLUDES = -I/home/samuele/graal_ws/oal/include -I/home/samuele/graal_ws/oal/include/oal -I/home/samuele/graal_ws/oal/src 
 

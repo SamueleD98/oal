@@ -112,17 +112,6 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
-# Special rule for the target test
-test:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
-	/usr/bin/ctest --force-new-ctest-process $(ARGS)
-.PHONY : test
-
-# Special rule for the target test
-test/fast: test
-
-.PHONY : test/fast
-
 # Special rule for the target install/local
 install/local: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
@@ -181,32 +170,6 @@ oal_test/fast:
 .PHONY : oal_test/fast
 
 #=============================================================================
-# Target rules for targets named oal_uninstall
-
-# Build rule for target.
-oal_uninstall: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 oal_uninstall
-.PHONY : oal_uninstall
-
-# fast build rule for target.
-oal_uninstall/fast:
-	$(MAKE) -f CMakeFiles/oal_uninstall.dir/build.make CMakeFiles/oal_uninstall.dir/build
-.PHONY : oal_uninstall/fast
-
-#=============================================================================
-# Target rules for targets named uninstall
-
-# Build rule for target.
-uninstall: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 uninstall
-.PHONY : uninstall
-
-# fast build rule for target.
-uninstall/fast:
-	$(MAKE) -f CMakeFiles/uninstall.dir/build.make CMakeFiles/uninstall.dir/build
-.PHONY : uninstall/fast
-
-#=============================================================================
 # Target rules for targets named oal
 
 # Build rule for target.
@@ -218,6 +181,87 @@ oal: cmake_check_build_system
 oal/fast:
 	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/build
 .PHONY : oal/fast
+
+src/helper_functions.o: src/helper_functions.cpp.o
+
+.PHONY : src/helper_functions.o
+
+# target to build an object file
+src/helper_functions.cpp.o:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/helper_functions.cpp.o
+.PHONY : src/helper_functions.cpp.o
+
+src/helper_functions.i: src/helper_functions.cpp.i
+
+.PHONY : src/helper_functions.i
+
+# target to preprocess a source file
+src/helper_functions.cpp.i:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/helper_functions.cpp.i
+.PHONY : src/helper_functions.cpp.i
+
+src/helper_functions.s: src/helper_functions.cpp.s
+
+.PHONY : src/helper_functions.s
+
+# target to generate assembly for a file
+src/helper_functions.cpp.s:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/helper_functions.cpp.s
+.PHONY : src/helper_functions.cpp.s
+
+src/node.o: src/node.cpp.o
+
+.PHONY : src/node.o
+
+# target to build an object file
+src/node.cpp.o:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/node.cpp.o
+.PHONY : src/node.cpp.o
+
+src/node.i: src/node.cpp.i
+
+.PHONY : src/node.i
+
+# target to preprocess a source file
+src/node.cpp.i:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/node.cpp.i
+.PHONY : src/node.cpp.i
+
+src/node.s: src/node.cpp.s
+
+.PHONY : src/node.s
+
+# target to generate assembly for a file
+src/node.cpp.s:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/node.cpp.s
+.PHONY : src/node.cpp.s
+
+src/obstacle.o: src/obstacle.cpp.o
+
+.PHONY : src/obstacle.o
+
+# target to build an object file
+src/obstacle.cpp.o:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/obstacle.cpp.o
+.PHONY : src/obstacle.cpp.o
+
+src/obstacle.i: src/obstacle.cpp.i
+
+.PHONY : src/obstacle.i
+
+# target to preprocess a source file
+src/obstacle.cpp.i:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/obstacle.cpp.i
+.PHONY : src/obstacle.cpp.i
+
+src/obstacle.s: src/obstacle.cpp.s
+
+.PHONY : src/obstacle.s
+
+# target to generate assembly for a file
+src/obstacle.cpp.s:
+	$(MAKE) -f CMakeFiles/oal.dir/build.make CMakeFiles/oal.dir/src/obstacle.cpp.s
+.PHONY : src/obstacle.cpp.s
 
 src/path_planner.o: src/path_planner.cpp.o
 
@@ -283,13 +327,19 @@ help:
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... oal_test"
 	@echo "... edit_cache"
-	@echo "... test"
-	@echo "... oal_uninstall"
-	@echo "... uninstall"
+	@echo "... oal_test"
 	@echo "... install/local"
 	@echo "... oal"
+	@echo "... src/helper_functions.o"
+	@echo "... src/helper_functions.i"
+	@echo "... src/helper_functions.s"
+	@echo "... src/node.o"
+	@echo "... src/node.i"
+	@echo "... src/node.s"
+	@echo "... src/obstacle.o"
+	@echo "... src/obstacle.i"
+	@echo "... src/obstacle.s"
 	@echo "... src/path_planner.o"
 	@echo "... src/path_planner.i"
 	@echo "... src/path_planner.s"

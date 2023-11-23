@@ -2,7 +2,7 @@
 #define OAL_VERTEX_HPP
 
 
-#include "tpoint.hpp"
+#include "oal/data_structs/tpoint.hpp"
 
 // Vertex indexes map
 enum vx_id {

@@ -1,4 +1,4 @@
-#include "path_planner.hpp"
+#include "oal/path_planner.hpp"
 
 // Compute the path to reach the goal
 bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colregs, Path &path) {

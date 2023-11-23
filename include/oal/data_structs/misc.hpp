@@ -6,8 +6,8 @@
 #include <memory>
 #include <iostream> //debug
 #include <stack>
-#include "obstacle.hpp"
-#include "node.hpp"
+#include "oal/data_structs/obstacle.hpp"
+#include "oal/data_structs/node.hpp"
 
 typedef std::shared_ptr<Obstacle> obs_ptr;
 
