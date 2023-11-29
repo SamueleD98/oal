@@ -36,10 +36,6 @@ private:
     // Check if a point is in any obs bb at given time (and save such obs in vector if its pointer is given)
     bool IsInAnyBB(TPoint time_point, const std::shared_ptr<std::vector<obs_ptr>> &surrounding_obs = nullptr);
 
-    // Given a point in an obs bb, find the exit vxs that wouldn't need to cross the main diagonals and save them in a given vector
-    static void
-    FindExitVxs(const Eigen::Vector2d &element_pos, const obs_ptr &obs, std::vector<vx_id> &allowedVxs, double time=0);
-
     // Check if starting position is safe or find new start positions. Insert them in set
     bool RootSetup(const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set);
 
@@ -51,10 +47,12 @@ private:
     CheckCollision(const Node &start, Node &goal, const std::shared_ptr<std::vector<Node>> &collision_points = nullptr);
 
     // Check the final path to goal. If goal is unreachable only because it is in an obs bb, finds new goal outside it
-    bool CheckFinal(const Node &start, Node &goal);
+    bool CheckFinal(const Node &start, Node &goal, std::multiset<Node> &reachable_full_set);
 
     // Order waypoints in a stack by going backward from the goal to start using the parent pointer attribute
     void BuildPath(const Node &goal, Path &path);
+
+    void FindObssLocalVxs(bool with_uncertainty);
 
 public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.
@@ -68,12 +66,8 @@ public:
 
       // Plot stuff
       {
-        if (plotCKFile_.is_open()) {
-          plotCKFile_.close();
-        }
+        if (plotCKFile_.is_open()) plotCKFile_.close();
         plotCKFile_.open("CKlog.txt", std::ofstream::trunc);
-
-
       }
     }
 

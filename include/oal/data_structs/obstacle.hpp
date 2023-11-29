@@ -9,6 +9,8 @@
 #include "oal/data_structs/vertex.hpp"
 #include "oal/data_structs/tpoint.hpp"
 
+#define BB_GAP 1.5
+
 class Obstacle {
 //private:
 public:
@@ -25,7 +27,10 @@ public:
     double safety_bb_ratio{}; // safety_bb_dim / bb_dim
     std::vector<Vertex> vxs; // local position (wrt obs)
 
-    bool higher_priority{};
+    double bb_gap = BB_GAP;
+    bool uncertainty = false;
+
+    bool higher_priority = false;
 
     // Set bb size according to own ship distance
     void SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
@@ -44,18 +49,21 @@ public:
     bool IsInBB(TPoint &time_point);
 
     std::string plotStuff(double time);
-    void print() const{
+
+    void print() const {
 //      std::cout<<id<<std::endl<< position.x()<<" "<<position.y()<<std::endl<<heading<<std::endl<<speed<<std::endl;
 //std::cout<<"Obstacle(\""<<id<<"\", {"<<position.x()<<", "<<position.y()<<"}, "<<heading<<", "<<speed<<"2, 0.5, 2, 2, 2, 1);"<<std::endl;
     }
 
 //public:
-    Obstacle()= default;
+    Obstacle() = default;
 
-    Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double vel_dir, double dim_x, double dim_y,
+    Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double vel_dir, double dim_x,
+             double dim_y,
              double bb_y_ratio, double bb_x_bow_ratio, double bb_x_stern_ratio, double safety_bb_ratio,
              bool high_priority = false)
-            : id(std::move(name)), position(std::move(position)), head(heading), speed(speed), vel_dir(vel_dir), dim_x(dim_x),
+            : id(std::move(name)), position(std::move(position)), head(heading), speed(speed), vel_dir(vel_dir),
+              dim_x(dim_x),
               dim_y(dim_y), bb_y_ratio(bb_y_ratio), bb_x_bow_ratio(bb_x_bow_ratio), bb_x_stern_ratio(bb_x_stern_ratio),
               safety_bb_ratio(safety_bb_ratio), higher_priority(high_priority) {
 

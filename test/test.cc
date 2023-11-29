@@ -22,6 +22,7 @@ int main(int, char **) {
   //std::cout << "Which scenario?" << std::endl;
   //std::cin  >>  scenario;
   scenario = 1;
+  v_info.velocities = generateRange(0.5, 1.5, 0.1);
 
   /* TODO scenario
    * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
@@ -42,7 +43,7 @@ int main(int, char **) {
       std::uniform_real_distribution<double> heading_gen(-M_PI, M_PI);
       std::uniform_real_distribution<double> vel_dir_gen(-M_PI/6, M_PI/6);
 
-      for (auto i = 1; i < 15; i++) {
+      for (auto i = 1; i < 10; i++) {
         double heading = heading_gen(e1);
         Obstacle obs = Obstacle(std::to_string(i), {pos_gen(e1), pos_gen(e1)}, heading, speed_gen(e1), heading+vel_dir_gen(e1), 2, 0.5, 3.5,
                                 6, 3.5, 3);
@@ -162,7 +163,7 @@ int main(int, char **) {
    */
 
 
-  v_info.velocities = generateRange(1, 1, 0.1);
+
   path_planner planner1(v_info, obstacles);
   path_planner planner2(v_info, obstacles);
 

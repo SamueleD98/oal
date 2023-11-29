@@ -41,8 +41,8 @@ public:
 
     // Nodes are equal if position, time, speed, obs and vx are the same (small epsilon involved for position and time)
     bool operator==(const Node &other) const {
-      return (position-other.position).norm()<0.001 && obs_ptr.get() == other.obs_ptr.get() && vx == other.vx &&
-             time-other.time<0.01 && vh_speed == other.vh_speed;
+      return (position-other.position).norm()<0.01 && obs_ptr.get() == other.obs_ptr.get() && vx == other.vx &&
+             time-other.time<0.5; //&& vh_speed == other.vh_speed;
     }
 
     // Set estimated cost and total cost according to own ship speed
@@ -56,6 +56,9 @@ public:
 
     // Given a set of vertexes, find which are visible from the vehicle when in this state (node)
     void FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs);
+
+    // Find the exit vxs that wouldn't need to cross the main diagonals and save them in a given vector
+    void FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) const;
 
     // Check if newly created node already exists in set
     // TODO if it does, maybe it has better properties (less change in direction, smaller max change, less speed change, smaller average speed)
@@ -80,6 +83,7 @@ public:
         node = *node.parent;
       }
     }
+
 
 };
 

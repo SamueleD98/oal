@@ -61,7 +61,7 @@ def main():
 
     # Brute force
     print("\nBrute force results")
-    thetas = np.arange(-pi, pi, 0.001)
+    thetas = np.arange(-pi, pi, 0.01)
     dists = np.array([])
     for theta in thetas:
         t = Origin[0] / (OS_Speed * cos(theta) - Speed * cos(Heading))

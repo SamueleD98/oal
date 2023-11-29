@@ -39,6 +39,13 @@ bool Node::IsUnique(Node other) {
 void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) {
   if (obs_ptr != nullptr) {
     if (obs_ptr->id == target_obs.id) {
+      if (vx == NA){
+        // OS in TS bb, visible are the exit ones
+        std::vector<vx_id> allowedVxs;
+        FindExitVxs(target_obs, allowedVxs);
+        vxs_abs[allowedVxs[0]].isVisible = true;
+        vxs_abs[allowedVxs[1]].isVisible = true;
+      }
       // Set the adjacent vxs as visible
       if (vx == FR || vx == RL) {
         vxs_abs[1].isVisible = true;
@@ -92,19 +99,50 @@ void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) 
 bool Node::IsInSet(std::multiset<Node> &set) const {
   for (const auto &node: set) {
     if (node == *this) {
-      /*node.print();
+      node.print();
       this->print();
-      std::cout << "___" << std::endl;*/
-      return true;
-    }
-    if ((node.position-this->position).norm()<0.001 && this->time>node.time) {
-      // TODO this solves the surrounded goal loop problem, but I think it shrinks the solution space
-      // also, in that scenario, colregs true solution still sucks: it should end way before, but
-      //  it looks for a new goal and the best est. is reached after waaay too much
+      std::cout << "___" << std::endl;
       return true;
     }
   }
   return false;
+}
+
+void Node::FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) const {
+  Eigen::Vector2d bodyObs_e = GetProjectionInObsFrame(position, obs, 0.0);
+
+  bool IsLeftOfDiag1 = (bodyObs_e.y() >=
+                        obs.vxs[1].position.y() / obs.vxs[1].position.x() *
+                        bodyObs_e.x()); // Being left of diag FL-RR
+  bool IsLeftOfDiag2 = (bodyObs_e.y() >=
+                        obs.vxs[0].position.y() / obs.vxs[0].position.x() *
+                        bodyObs_e.x()); // Being left of diag FR-LL
+
+  if (IsLeftOfDiag1 && IsLeftOfDiag2) {
+    // USV in port side of bb
+    //  go for FL or RL
+    allowedVxs.push_back(FL);
+    allowedVxs.push_back(RL);
+  } else {
+    if (IsLeftOfDiag1) {
+      // USV in stern side of bb
+      //  go for RL or RR
+      allowedVxs.push_back(RL);
+      allowedVxs.push_back(RR);
+    } else {
+      if (IsLeftOfDiag2) {
+        // USV in bow side of bb
+        //  go for FR or FL
+        allowedVxs.push_back(FR);
+        allowedVxs.push_back(FL);
+      } else {
+        // USV in starboard side of bb
+        //  go for FR or RR
+        allowedVxs.push_back(FR);
+        allowedVxs.push_back(RR);
+      }
+    }
+  }
 }
 
 

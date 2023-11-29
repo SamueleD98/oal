@@ -6,7 +6,7 @@ double GetBearing(Eigen::Vector2d dir, double obs_heading) {
   return remainder(theta, 2 * M_PI);
 }
 
-Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d &point, Obstacle &obs, double time) {
+Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d &point, const Obstacle &obs, double time) {
   Eigen::Vector2d element_obs = point - ComputePosition(obs, time);
   Eigen::Rotation2D<double> rotation(obs.head);
   return rotation.inverse() * element_obs;

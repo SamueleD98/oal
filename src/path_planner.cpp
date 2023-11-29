@@ -21,11 +21,10 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   std::multiset<Node> open_set;  // set of reachable nodes, ordered by total cost (ascending), still to analyze
   std::multiset<Node> reachable_full_set; // set of all the reachable nodes (open_set + already analyzed)
   Node goal, current;
+  // Goal node setup
+  goal.position = goal_position;
 
-  // Set the bounding box dimension based on the vehicle start distance from the obstacles
-  for (const std::shared_ptr<Obstacle>& obs: obss_info_.obstacles) {
-    obs->FindLocalVxs(v_info_.position);
-  }
+  FindObssLocalVxs(true);
 
   {
     plotWpsFile_ << "Time_" << 0 << std::endl;
@@ -39,8 +38,6 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   if (!RootSetup(goal_position, open_set)) return false;
 
   reachable_full_set = open_set;
-  // Goal node setup
-  goal.position = goal_position;
 
   // Run until every node is studied or a path is found
   bool found = false;
@@ -51,7 +48,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
 
     if(open_set.size()>5000) {
       std::cout << "Number of nodes to analyze: " << open_set.size() << std::endl;
-      Node best = current;
+      /*Node best = current;
       std::multiset<Node> temp = open_set;
       while (!temp.empty()) {
         Node node = *temp.begin();
@@ -62,11 +59,11 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
       }
       auto dist = goal_position - best.position;
       std::cout <<"Distance: "<< dist.norm()<<std::endl;
-      //current.print();
+      //current.print();*/
     }
 
     // Check if goal is reachable
-    if (CheckFinal(current, goal)) {
+    if (CheckFinal(current, goal, reachable_full_set)) {
       found = true;
       break;
     }
@@ -112,6 +109,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   if(!found){
     // No path found
     if ( current.parent == nullptr) return false; // still in start
+    // TODO best estimate
     std::cout << " NEW GOAL ";
     // Find the node with the smallest est. time to goal among the analyzed ones
     goal = current;
@@ -131,10 +129,11 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   return true;
 }
 
-bool path_planner::CheckFinal(const Node &start, Node &goal) {
-  std::vector<obs_ptr> s_obs;
+bool path_planner::CheckFinal(const Node &start, Node &goal, std::multiset<Node> &reachable_full_set) {
+  std::vector<obs_ptr> surrounding_obs;
   double goal_time = start.time + (goal.position - start.position).norm() / start.vh_speed;
-  if (IsInAnyBB(TPoint(goal.position, goal_time), std::make_shared<std::vector<obs_ptr>>(s_obs))) {
+  if (IsInAnyBB(TPoint({goal.position, goal_time}), std::make_shared<std::vector<obs_ptr>>(surrounding_obs))) {
+    //return false;
     // the goal is unreachable, let's try and find a new goal.
     std::shared_ptr<std::vector<Node>> collision_nodes(new std::vector<Node>);
     CheckCollision(start, goal, collision_nodes); //run check collision to get the collision points
@@ -143,26 +142,19 @@ bool path_planner::CheckFinal(const Node &start, Node &goal) {
     // closer collision, maybe move it in checkCollision
     Node closer_collision;
     start.GetCloser(collision_nodes, closer_collision);
-    bool found_new = false;
-    for (const auto &s_obs_ptr: s_obs) {
+    for (const auto &s_obs_ptr: surrounding_obs) {
       if (s_obs_ptr.get() == closer_collision.obs_ptr.get()) {
-        goal = closer_collision;
-        found_new = true;
-        std::cout << "Trying different goal!" << std::endl;
+        if (CheckCollision(start, closer_collision)){
+          // TODO colregs
+          closer_collision.SetParent(start);
+          closer_collision.vh_speed = *std::max_element(v_info_.velocities.begin(), v_info_.velocities.end());
+          closer_collision.UpdateCosts(goal.position);
+          reachable_full_set.insert(closer_collision);
+        }
+        break;
       }
     }
-    if (!found_new) return false;
-  }
-  if (CheckCollision(start, goal)) {
-    // no colregs yet, but assuming it needs to check colregs only when approaching an obs,
-    //  goal has no obs and so it must not check
-    // ACTUALLY PAST SENTENCE DOES NOT HOLD IF GOAL WAS MADE IN THIS FUNCTION
-    Eigen::Vector2d dist_to_goal = goal.position - start.position;
-    goal.time = start.time + dist_to_goal.norm() / start.vh_speed;
-    //goal.parent = std::make_shared<Node>(start);
-    goal.SetParent(start);
-    return true;
-  }
+  }else if (CheckCollision(start, goal)) return true;
   return false;
 }
 
@@ -185,8 +177,8 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
   // Check colregs depending on situation
   if (abs(theta) <= HeadOnAngle) {
     // head on
-    if (goal.vx == FR) {
-      // should be FL
+    if (goal.vx == FR || goal.vx == RR) {
+      // should be on left
       return false;
     }
     goal.currentObsLimitedVxs.push_back(FR);
@@ -194,15 +186,7 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
     // overtaking
     goal.overtakingObsList.push_back(goal.obs_ptr->id);
     // avoid future crossings
-  } else {
-    if (theta > 0) {
-      // crossing from right, stand on
-      if (goal.vx == RR || goal.vx == RL) {
-        // should stand on (does it make sense to ignore completely obs that should give way?)
-        return false;
-      }
-    } else {
-      if (theta < 0) {
+  } else if (theta < 0) {
         // crossing from left, give way
         if (goal.vx == FR || goal.vx == FL) {
           // should give way
@@ -210,9 +194,16 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
         }
         goal.currentObsLimitedVxs.push_back(FR);
         goal.currentObsLimitedVxs.push_back(FL);
-      }
-    }
   }
+   /* if (theta > 0) {
+      // crossing from right, stand on
+      if (goal.vx == RR || goal.vx == RL) {
+        // should stand on (does it make sense to ignore completely obs that should give way?)
+        return false;
+      }
+    } else {
+
+    }*/
   return true;
 }
 
@@ -269,6 +260,19 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
       continue;
     }
 
+    // Starts in TS bb
+    if (start.vx == NA) {
+      // obs_ptr.get() == start.obs_ptr.get() should be also true
+      // TODO checks only iff colregs says it
+      // Check both diagonals
+      Eigen::Vector3d collision_point;
+      if (FindLinePlaneIntersectionPoint(vxs_abs[FR], vxs_abs[RL], bb_direction, start, goal3d, collision_point)
+          || FindLinePlaneIntersectionPoint(vxs_abs[FL], vxs_abs[RR], bb_direction, start, goal3d, collision_point)) {
+        return false;
+      }
+      continue;
+    }
+
     // search each of the bb 4 sides for collisions with path
     for (int side_idx = 0; side_idx < 4; side_idx++) {
       int vx_idx1, vx_idx2;
@@ -306,12 +310,15 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
       if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal3d,
                                          collision_point)) {
         // The desired path crosses the face of the bb defined by the two vxs and its direction
-        Node cp_node;
-        Eigen::Vector2d collision_point_2d(collision_point.x(), collision_point.y());
-        cp_node.position = collision_point_2d;
-        cp_node.obs_ptr = obs_ptr;
-        cp_node.time = start.time + collision_point.z();
-        if (collision_points != nullptr) collision_points->push_back(cp_node);
+        if (collision_points != nullptr){
+          Node cp_node;
+          Eigen::Vector2d collision_point_2d(collision_point.x(), collision_point.y());
+          cp_node.position = collision_point_2d;
+          cp_node.obs_ptr = obs_ptr;
+          cp_node.vx = NA;
+          cp_node.time = start.time + collision_point.z();
+          collision_points->push_back(cp_node);
+        }
         return false;
       }
     }
@@ -485,14 +492,14 @@ bool path_planner::IsInAnyBB(TPoint time_point,
   return false;
 }
 
-void path_planner::FindExitVxs(const Eigen::Vector2d &element_pos, const obs_ptr &obs, std::vector<vx_id> &allowedVxs, double time ) {
-  Eigen::Vector2d bodyObs_e = GetProjectionInObsFrame(element_pos, *obs, 0.0);
+/*void path_planner::FindExitVxs(const Eigen::Vector2d &element_pos, const Obstacle &obs, std::vector<vx_id> &allowedVxs, double time ) {
+  Eigen::Vector2d bodyObs_e = GetProjectionInObsFrame(element_pos, obs, 0.0);
 
   bool IsLeftOfDiag1 = (bodyObs_e.y() >=
-                        obs->vxs[1].position.y() / obs->vxs[1].position.x() *
+                        obs.vxs[1].position.y() / obs.vxs[1].position.x() *
                         bodyObs_e.x()); // Being left of diag FL-RR
   bool IsLeftOfDiag2 = (bodyObs_e.y() >=
-                        obs->vxs[0].position.y() / obs->vxs[0].position.x() *
+                        obs.vxs[0].position.y() / obs.vxs[0].position.x() *
                         bodyObs_e.x()); // Being left of diag FR-LL
 
   if (IsLeftOfDiag1 && IsLeftOfDiag2) {
@@ -520,13 +527,15 @@ void path_planner::FindExitVxs(const Eigen::Vector2d &element_pos, const obs_ptr
       }
     }
   }
-}
+}*/
 
 bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, double time, Path path) {
   // the waypoint should be just the ones left to reach, not the whole path returned by the library
   if (path.empty()) {
     return false;
   }
+
+  FindObssLocalVxs(false);
 
   Node start;
   start.position = vh_pos;
@@ -547,82 +556,45 @@ bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, double time, Path pa
 }
 
 bool path_planner::RootSetup(const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set) {
-  bool find_new = false;
   std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
-  IsInAnyBB(TPoint(v_info_.position, 0), surrounding_obs);
-  std::shared_ptr<Obstacle> surr_obs;
-  Eigen::Vector2d path_vector = goal_position - v_info_.position;
-  double desired_vh_heading = atan2(path_vector.y(), path_vector.x());
-  if (!surrounding_obs->empty()) {
-    if (surrounding_obs->size() > 1){
-      std::cout << "Start in multiple bb.. abort." << std::endl;
-      return false; // The starting point is in a number of different bb, at the moment no solution
-    }
-    surr_obs = surrounding_obs->at(0);
-    Eigen::Vector2d BodyObs_vh = GetProjectionInObsFrame(v_info_.position, *surr_obs, 0);
-    if(BodyObs_vh.x()>0 && atan2(BodyObs_vh.y(),BodyObs_vh.x()) <= M_PI - OvertakingAngle){
-      // Own ship is in a bb of a vessel coming from behind: it is the one that should avoid os
-      // -> keep the original starting node OR stand on and wait TODO for now just return path not found
-      std::cout << std::endl<<" Target ships colliding with own ship.. abort." << std::endl;
-      return false;
-    }else{
-      find_new = true;
-    }
-  }
+  IsInAnyBB(TPoint({v_info_.position, 0}), surrounding_obs);
+  Obstacle surr_obs;
   Node root;
   root.position = v_info_.position;
   root.time = 0;
+  if (!surrounding_obs->empty()) {
+    if (surrounding_obs->size() > 1){
+      // The starting point is in a number of different bb, at the moment no solution
+      std::cout << "Start in multiple bb.. abort." << std::endl;
+      return false;
+    }
+    root.obs_ptr = surrounding_obs->at(0);
+    root.vx = NA;
+    // TODO reposition this piece of code
+    // Check which Ship has to give way
+    // TODO here colregs compliance is always assumed, change it (?)
+    /*Eigen::Vector2d BodyObs_vh = GetProjectionInObsFrame(v_info_.position, surr_obs, 0);
+    if(BodyObs_vh.x()>0 && atan2(BodyObs_vh.y(),BodyObs_vh.x()) <= M_PI - OvertakingAngle){
+      // Own ship is in a bb of a vessel coming from behind: it is that one that should avoid os
+      // -> keep the original starting node OR stand on and wait TODO for now just return path not found
+      std::cout << std::endl<<" Target ships colliding with own ship.. abort." << std::endl;
+      return false;
+    }*/
+  }
   for (double &speed: v_info_.velocities) {
     root.vh_speed = speed;
     root.UpdateCosts(goal_position);
-    if (!find_new) {
-      open_set.insert(root);
-    }else {
-      // Get the two vxs, to aim to, in order to exit the bb
-      std::vector<vx_id> allowedVxs;
-      FindExitVxs(root.position, surr_obs, allowedVxs);
-      // Look for the best vx depending on the optimal heading
-      //  (if vehicle actual heading is later added as attribute, may be better than optimal heading)
-      // Angles between d_vh_h and the two vxs
-      double bearingVx1 =
-              desired_vh_heading -
-              atan2(surr_obs->vxs[allowedVxs[0]].position.y(), surr_obs->vxs[allowedVxs[0]].position.x()) +
-              surr_obs->head;
-      double bearingVx2 =
-              desired_vh_heading -
-              atan2(surr_obs->vxs[allowedVxs[1]].position.y(), surr_obs->vxs[allowedVxs[1]].position.x()) +
-              surr_obs->head;
-      vx_id exit_vx_id;
-      if (abs(bearingVx1) < abs(bearingVx2)) {
-        exit_vx_id = allowedVxs[0];
-      } else {
-        exit_vx_id = allowedVxs[1];
-      }
-      // If usv is able to intercept it, add the exit vx as next (and only) node
-      std::vector<Vertex> vxs_abs;
-      surr_obs->FindAbsVxs(0, vxs_abs);
-      vxs_abs[exit_vx_id].isVisible = true;
-      FindInterceptPoints(root, *surr_obs, vxs_abs); //Compute when every visible vertex is intercepted
-      if(!vxs_abs.empty()){
-        while(!vxs_abs.empty()){
-          std::cout<<std::endl<<" New start"<<std::endl;
-          Vertex vx = *vxs_abs.begin();
-          vxs_abs.erase(vxs_abs.begin());
-          // Save new node
-          Node newstart(vx.intercept_point, surr_obs, vx.id, root);
-          for (double &sp: v_info_.velocities) {
-            newstart.vh_speed = sp;
-            newstart.UpdateCosts(goal_position);
-            open_set.insert(newstart);
-          }
-        }
-      }else{
-        // else ignore being in the bb, nothing it can do
-        open_set.insert(root);
-      }
-    }
+    open_set.insert(root);
   }
   return true;
+}
+
+void path_planner::FindObssLocalVxs(bool with_uncertainty) {
+  // Set the bounding box dimension based on the vehicle start distance from the obstacles
+  for (const obs_ptr& obs: obss_info_.obstacles) {
+    obs->uncertainty = with_uncertainty;
+    obs->FindLocalVxs(v_info_.position);
+  }
 }
 
 

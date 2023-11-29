@@ -3,6 +3,7 @@
 
 void Obstacle::SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
                        double &bb_dim_y) const {
+  // TODO safety symmetric or not?
   double bb_ratio_x;
   if (isAhead) {
     bb_dim_x_stern = dim_x / 2 * bb_x_stern_ratio;
@@ -36,6 +37,12 @@ void Obstacle::SetSize(double dist_x, double dist_y, bool isAhead, double &bb_di
   } else {
     bb_dim_x_stern = bb_dim_x;
   }
+
+  if(uncertainty){
+    bb_dim_x_stern += bb_gap;
+    bb_dim_x_bow += bb_gap;
+    bb_dim_y += bb_gap;
+  }
 }
 
 void Obstacle::FindAbsVxs(double time, std::vector<Vertex> &vxs_abs) {
@@ -62,7 +69,11 @@ void Obstacle::FindLocalVxs(const Eigen::Vector2d &vhPos) {
   bool IsAhead = (abs(theta) <= M_PI / 2);
   SetSize(dist_x, dist_y, IsAhead, bb_dim_x_stern, bb_dim_x_bow, bb_dim_y);
   // Find the local vertexes position
-  Vertex vx1, vx2, vx3, vx4;
+  vxs.emplace_back(FR, Eigen::Vector2d(bb_dim_x_bow, -bb_dim_y / 2));
+  vxs.emplace_back(FL, Eigen::Vector2d(bb_dim_x_bow, bb_dim_y / 2));
+  vxs.emplace_back(RR, Eigen::Vector2d(-bb_dim_x_stern, -bb_dim_y / 2));
+  vxs.emplace_back(RL, Eigen::Vector2d(-bb_dim_x_stern, bb_dim_y / 2));
+  /*Vertex vx1, vx2, vx3, vx4;
   vx1.id = FR;
   vx1.position[0] = bb_dim_x_bow;
   vx1.position[1] = -bb_dim_y / 2;
@@ -78,7 +89,7 @@ void Obstacle::FindLocalVxs(const Eigen::Vector2d &vhPos) {
   vxs.push_back(vx1);
   vxs.push_back(vx2);
   vxs.push_back(vx3);
-  vxs.push_back(vx4);
+  vxs.push_back(vx4);*/
 }
 
 Eigen::Vector2d Obstacle::GetProjectionInLocalFrame(TPoint &time_point) {
