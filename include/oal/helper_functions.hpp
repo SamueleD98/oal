@@ -18,7 +18,7 @@ Eigen::Vector3d Get3dPos(T &element){
 
 Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d &point, const Obstacle &obs, double time);
 
-// Given a direction and a Target Ship heading, returns the approaching angle of TS wrt to Own Ship
+// Wrt TS, from which angle OS approach (given OS direction and TS heading)
 double GetBearing(Eigen::Vector2d direction, double obs_heading);
 
 #endif

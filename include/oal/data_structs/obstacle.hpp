@@ -6,8 +6,10 @@
 #include <memory>
 #include <iostream> //debug
 
+
 #include "oal/data_structs/vertex.hpp"
 #include "oal/data_structs/tpoint.hpp"
+#include "oal/data_structs/bounding_box.hpp"
 
 #define BB_GAP 1.5
 
@@ -19,22 +21,15 @@ public:
     double head{};
     double vel_dir{};
     double speed{};
-    double dim_x{};
-    double dim_y{};
-    double bb_x_bow_ratio{};
-    double bb_x_stern_ratio{};
-    double bb_y_ratio{};
-    double safety_bb_ratio{}; // safety_bb_dim / bb_dim
+    bb_data bb;
     std::vector<Vertex> vxs; // local position (wrt obs)
 
-    double bb_gap = BB_GAP;
     bool uncertainty = false;
-
     bool higher_priority = false;
 
     // Set bb size according to own ship distance
-    void SetSize(double dist_x, double dist_y, bool isAhead, double &bb_dim_x_stern, double &bb_dim_x_bow,
-                 double &bb_dim_y) const;
+    void SetSize(double dist_x, double dist_y, double theta, double &bb_dim_x_bow, double &bb_dim_x_stern,
+                 double &bb_dim_y_starboard, double &bb_dim_y_port) const;
 
     // Compute local position of bb vxs
     void FindLocalVxs(const Eigen::Vector2d &vhPos);
@@ -58,31 +53,11 @@ public:
 //public:
     Obstacle() = default;
 
-    Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double vel_dir, double dim_x,
-             double dim_y,
-             double bb_y_ratio, double bb_x_bow_ratio, double bb_x_stern_ratio, double safety_bb_ratio,
+    Obstacle(std::string name, Eigen::Vector2d position, double heading, double speed, double vel_dir, bb_data bb,
              bool high_priority = false)
             : id(std::move(name)), position(std::move(position)), head(heading), speed(speed), vel_dir(vel_dir),
-              dim_x(dim_x),
-              dim_y(dim_y), bb_y_ratio(bb_y_ratio), bb_x_bow_ratio(bb_x_bow_ratio), bb_x_stern_ratio(bb_x_stern_ratio),
-              safety_bb_ratio(safety_bb_ratio), higher_priority(high_priority) {
-
-      if (dim_x <= 0 || dim_y <= 0) {
-        throw std::invalid_argument("Obstacle dimension must be strictly positive.");
-      }
-      if (safety_bb_ratio < 1 || bb_y_ratio < 1 || bb_x_bow_ratio < 1 || bb_x_stern_ratio < 1) {
-        throw std::invalid_argument("Bounding box ratios cannot be less than one.");
-      }
-      if (safety_bb_ratio > bb_y_ratio || safety_bb_ratio > bb_x_bow_ratio || safety_bb_ratio > bb_x_stern_ratio) {
-        throw std::invalid_argument("Generic bounding box ratios cannot be smaller than safety one.");
-      }
-      if (abs(heading) > M_PI) {
-        throw std::invalid_argument("Obstacle heading must be expressed in radians [-pi, +pi]");
-      }
-    }
-
+              bb(bb), higher_priority(high_priority) {}
 
 };
-
 
 #endif //OAL_OBSTACLE_HPP

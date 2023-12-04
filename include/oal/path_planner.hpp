@@ -47,7 +47,7 @@ private:
     CheckCollision(const Node &start, Node &goal, const std::shared_ptr<std::vector<Node>> &collision_points = nullptr);
 
     // Check the final path to goal. If goal is unreachable only because it is in an obs bb, finds new goal outside it
-    bool CheckFinal(const Node &start, Node &goal, std::multiset<Node> &reachable_full_set);
+    bool CheckFinal(const Node &start, Node &goal);
 
     // Order waypoints in a stack by going backward from the goal to start using the parent pointer attribute
     void BuildPath(const Node &goal, Path &path);

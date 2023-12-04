@@ -27,6 +27,7 @@ void Node::GetCloser(const std::shared_ptr<std::vector<Node>> &nodes_list, Node 
 }
 
 bool Node::IsUnique(Node other) {
+  // TODO uniqueness should be checked when looking for interceptable vxs
   while (other.parent != nullptr) {
     if (/*node_pos == other_pos && */obs_ptr.get() == other.obs_ptr.get() && vx == other.vx) {
       return false;
@@ -96,16 +97,47 @@ void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) 
   }
 }
 
-bool Node::IsInSet(std::multiset<Node> &set) const {
-  for (const auto &node: set) {
-    if (node == *this) {
-      node.print();
+bool Node::RemoveWorstDuplicates(std::multiset<Node> &set) {
+  return true;
+  for (auto node_it = set.begin(); node_it != set.end();) {
+    bool isSimilar = ((position-node_it->position).norm()<0.01 && obs_ptr.get() == node_it->obs_ptr.get() && vx == node_it->vx);
+    if (isSimilar) {
+      hasSimilar = true;
+      std::cout << " SIMILAR: " << std::endl;
+      node_it->print();
       this->print();
       std::cout << "___" << std::endl;
-      return true;
+
+      // Alternative costs, take advantage of nodes redundancy
+      bool minAncestors = mtrcs.n_ancestors < node_it->mtrcs.n_ancestors;
+      bool minTotHeadingChange = mtrcs.totHeadingChange < node_it->mtrcs.totHeadingChange;
+      bool minMaxHeadingChange = mtrcs.maxHeadingChange < node_it->mtrcs.maxHeadingChange;
+      bool minMaxSpeed = mtrcs.maxSpeed < node_it->mtrcs.maxSpeed;
+      bool minMaxAcceleration = mtrcs.maxSpeedChange < node_it->mtrcs.maxSpeedChange;
+      bool minDistance = mtrcs.totDistance < node_it->mtrcs.totDistance;
+      bool minAverageSpeed = mtrcs.averageSpeed < node_it->mtrcs.averageSpeed;
+
+      if (minTotHeadingChange) {
+        // *this is better, remove *node_it and everyone that has ancestor *node_it
+
+        // delete also descendents
+        for (auto node_it2 = set.begin(); node_it2 != set.end();) {
+          if (node_it2->HasAncestor(*node_it)) {
+            node_it2 = set.erase(node_it2);
+          } else {
+            ++node_it2;
+          }
+        }
+        node_it = set.erase(node_it);
+        return true;
+      }else {
+        return false;
+      }
+    }else{
+      ++node_it;
     }
   }
-  return false;
+  return true;
 }
 
 void Node::FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) const {
@@ -144,6 +176,21 @@ void Node::FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) cons
     }
   }
 }
+
+bool Node::HasAncestor(const Node &node) const {
+  if(this->parent != nullptr){
+    Node current = *this->parent;
+    while (current.parent != nullptr) {
+      if (current == node) {
+        return true;
+      }
+      current = *current.parent;
+    }
+  }
+  return false;
+}
+
+
 
 
 

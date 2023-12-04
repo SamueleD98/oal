@@ -3,7 +3,9 @@
 double GetBearing(Eigen::Vector2d dir, double obs_heading) {
   double heading_v = atan2(dir.y(), dir.x()); // error for (0,0)
   double theta = M_PI + obs_heading - heading_v; //Interception angle
-  return remainder(theta, 2 * M_PI);
+  double result = remainder(theta, 2 * M_PI);
+  if (result >= M_PI) result -= 2 * M_PI; // not tested
+  return result;
 }
 
 Eigen::Vector2d GetProjectionInObsFrame(const Eigen::Vector2d &point, const Obstacle &obs, double time) {
