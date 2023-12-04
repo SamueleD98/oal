@@ -1,5 +1,5 @@
-#include "data_structs/node.hpp"
-#include "helper_functions.hpp"
+#include "oal/data_structs/node.hpp"
+#include "oal/helper_functions.hpp"
 
 void Node::UpdateCosts(const Eigen::Vector2d &goal) {
   costToReach = time; //if the cost is the time to reach the target
@@ -27,6 +27,7 @@ void Node::GetCloser(const std::shared_ptr<std::vector<Node>> &nodes_list, Node 
 }
 
 bool Node::IsUnique(Node other) {
+  // TODO uniqueness should be checked when looking for interceptable vxs
   while (other.parent != nullptr) {
     if (/*node_pos == other_pos && */obs_ptr.get() == other.obs_ptr.get() && vx == other.vx) {
       return false;
@@ -39,6 +40,13 @@ bool Node::IsUnique(Node other) {
 void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) {
   if (obs_ptr != nullptr) {
     if (obs_ptr->id == target_obs.id) {
+      if (vx == NA){
+        // OS in TS bb, visible are the exit ones
+        std::vector<vx_id> allowedVxs;
+        FindExitVxs(target_obs, allowedVxs);
+        vxs_abs[allowedVxs[0]].isVisible = true;
+        vxs_abs[allowedVxs[1]].isVisible = true;
+      }
       // Set the adjacent vxs as visible
       if (vx == FR || vx == RL) {
         vxs_abs[1].isVisible = true;
@@ -89,23 +97,100 @@ void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) 
   }
 }
 
-bool Node::IsInSet(std::multiset<Node> &set) const {
-  for (const auto &node: set) {
-    if (node == *this) {
-      /*node.print();
+bool Node::RemoveWorstDuplicates(std::multiset<Node> &set) {
+  return true;
+  for (auto node_it = set.begin(); node_it != set.end();) {
+    bool isSimilar = ((position-node_it->position).norm()<0.01 && obs_ptr.get() == node_it->obs_ptr.get() && vx == node_it->vx);
+    if (isSimilar) {
+      hasSimilar = true;
+      std::cout << " SIMILAR: " << std::endl;
+      node_it->print();
       this->print();
-      std::cout << "___" << std::endl;*/
-      return true;
+      std::cout << "___" << std::endl;
+
+      // Alternative costs, take advantage of nodes redundancy
+      bool minAncestors = mtrcs.n_ancestors < node_it->mtrcs.n_ancestors;
+      bool minTotHeadingChange = mtrcs.totHeadingChange < node_it->mtrcs.totHeadingChange;
+      bool minMaxHeadingChange = mtrcs.maxHeadingChange < node_it->mtrcs.maxHeadingChange;
+      bool minMaxSpeed = mtrcs.maxSpeed < node_it->mtrcs.maxSpeed;
+      bool minMaxAcceleration = mtrcs.maxSpeedChange < node_it->mtrcs.maxSpeedChange;
+      bool minDistance = mtrcs.totDistance < node_it->mtrcs.totDistance;
+      bool minAverageSpeed = mtrcs.averageSpeed < node_it->mtrcs.averageSpeed;
+
+      if (minTotHeadingChange) {
+        // *this is better, remove *node_it and everyone that has ancestor *node_it
+
+        // delete also descendents
+        for (auto node_it2 = set.begin(); node_it2 != set.end();) {
+          if (node_it2->HasAncestor(*node_it)) {
+            node_it2 = set.erase(node_it2);
+          } else {
+            ++node_it2;
+          }
+        }
+        node_it = set.erase(node_it);
+        return true;
+      }else {
+        return false;
+      }
+    }else{
+      ++node_it;
     }
-    if ((node.position-this->position).norm()<0.001 && this->time>node.time) {
-      // TODO this solves the surrounded goal loop problem, but I think it shrinks the solution space
-      // also, in that scenario, colregs true solution still sucks: it should end way before, but
-      //  it looks for a new goal and the best est. is reached after waaay too much
-      return true;
+  }
+  return true;
+}
+
+void Node::FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) const {
+  Eigen::Vector2d bodyObs_e = GetProjectionInObsFrame(position, obs, 0.0);
+
+  bool IsLeftOfDiag1 = (bodyObs_e.y() >=
+                        obs.vxs[1].position.y() / obs.vxs[1].position.x() *
+                        bodyObs_e.x()); // Being left of diag FL-RR
+  bool IsLeftOfDiag2 = (bodyObs_e.y() >=
+                        obs.vxs[0].position.y() / obs.vxs[0].position.x() *
+                        bodyObs_e.x()); // Being left of diag FR-LL
+
+  if (IsLeftOfDiag1 && IsLeftOfDiag2) {
+    // USV in port side of bb
+    //  go for FL or RL
+    allowedVxs.push_back(FL);
+    allowedVxs.push_back(RL);
+  } else {
+    if (IsLeftOfDiag1) {
+      // USV in stern side of bb
+      //  go for RL or RR
+      allowedVxs.push_back(RL);
+      allowedVxs.push_back(RR);
+    } else {
+      if (IsLeftOfDiag2) {
+        // USV in bow side of bb
+        //  go for FR or FL
+        allowedVxs.push_back(FR);
+        allowedVxs.push_back(FL);
+      } else {
+        // USV in starboard side of bb
+        //  go for FR or RR
+        allowedVxs.push_back(FR);
+        allowedVxs.push_back(RR);
+      }
+    }
+  }
+}
+
+bool Node::HasAncestor(const Node &node) const {
+  if(this->parent != nullptr){
+    Node current = *this->parent;
+    while (current.parent != nullptr) {
+      if (current == node) {
+        return true;
+      }
+      current = *current.parent;
     }
   }
   return false;
 }
+
+
 
 
 

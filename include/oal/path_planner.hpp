@@ -7,13 +7,12 @@
 #include <stack>
 #include <set>
 #include <eigen3/Eigen/Eigen>
-#include "data_structs/misc.hpp"
-#include "helper_functions.hpp"
+#include "oal/data_structs/misc.hpp"
+#include "oal/helper_functions.hpp"
 
 #define MAX_TIME 10000
 #define HeadOnAngle (15*(M_PI/180))
 #define OvertakingAngle (112*(M_PI/180))
-
 
 class path_planner {
 private:
@@ -37,10 +36,6 @@ private:
     // Check if a point is in any obs bb at given time (and save such obs in vector if its pointer is given)
     bool IsInAnyBB(TPoint time_point, const std::shared_ptr<std::vector<obs_ptr>> &surrounding_obs = nullptr);
 
-    // Given a point in an obs bb, find the exit vxs that wouldn't need to cross the main diagonals and save them in a given vector
-    static void
-    FindExitVxs(const Eigen::Vector2d &element_pos, const obs_ptr &obs, std::vector<vx_id> &allowedVxs, double time=0);
-
     // Check if starting position is safe or find new start positions. Insert them in set
     bool RootSetup(const Eigen::Vector2d &goal_position, std::multiset<Node> &open_set);
 
@@ -57,6 +52,8 @@ private:
     // Order waypoints in a stack by going backward from the goal to start using the parent pointer attribute
     void BuildPath(const Node &goal, Path &path);
 
+    void FindObssLocalVxs(bool with_uncertainty);
+
 public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.
 
@@ -69,12 +66,8 @@ public:
 
       // Plot stuff
       {
-        if (plotCKFile_.is_open()) {
-          plotCKFile_.close();
-        }
+        if (plotCKFile_.is_open()) plotCKFile_.close();
         plotCKFile_.open("CKlog.txt", std::ofstream::trunc);
-
-
       }
     }
 

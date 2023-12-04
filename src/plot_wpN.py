@@ -33,8 +33,12 @@ for line in Lines:
         position = (float(Values[1]), float(Values[2]))
     elif key == "Heading":
         theta = float(Values[1])
+    elif key == "Vel":
+        theta_vel = float(Values[1])
     elif key == "Safety":
-        safety = float(Values[1])
+        safety = (float(Values[1]), float(Values[2]), float(Values[3]), float(Values[4]))
+    elif key == "Max":
+        max = (float(Values[1]), float(Values[2]), float(Values[3]), float(Values[4]))
     elif key == "Vx":
         vx = (float(Values[1]), float(Values[2]))
         vxs.append(vx)
@@ -44,7 +48,8 @@ for line in Lines:
         dimy = float(Values[1])
     elif key == "-":
         data[timestamp].append(
-            {"obs": id, "position": position, "heading": theta, "safety": safety, "vx1": vxs[0], "vx2": vxs[1],
+            {"obs": id, "position": position, "heading": theta, "vel_dir": theta_vel, "safety": safety, "max": max,
+             "vx1": vxs[0], "vx2": vxs[1],
              "vx3": vxs[2], "vx4": vxs[3], "dimx": dimx, "dimy": dimy})
 
 bk = data
@@ -86,15 +91,14 @@ for timestamp in timeinstants:
     for polygon_data in pol_data:
         # print(polygon_data)
         heading = float(polygon_data['heading'])
+        vel_dir = float(polygon_data['vel_dir'])
         dim_x = float(polygon_data['dimx'])
         dim_y = float(polygon_data['dimy'])
-        safety = float(polygon_data['safety'])
-
         position = (float(polygon_data['position'][0]), float(polygon_data['position'][1]))
-        sdim_x = dim_x * safety
-        # mdim_x = dim_x * max
-        sdim_y = dim_y * safety
-        # mdim_y = dim_y * max
+        safety = (float(polygon_data['safety'][0]), float(polygon_data['safety'][1]), float(polygon_data['safety'][2]),
+                  float(polygon_data['safety'][3]))
+        max = (float(polygon_data['max'][0]), float(polygon_data['max'][1]), float(polygon_data['max'][2]),
+               float(polygon_data['max'][3]))
 
         vx1 = (position[0] + dim_x / 2 * math.cos(heading) + dim_y / 2 * math.sin(heading),
                position[1] - dim_y / 2 * math.cos(heading) + dim_x / 2 * math.sin(heading))
@@ -104,31 +108,45 @@ for timestamp in timeinstants:
                position[1] - dim_y / 2 * math.cos(heading) - dim_x / 2 * math.sin(heading))
         vx4 = (position[0] - dim_x / 2 * math.cos(heading) - dim_y / 2 * math.sin(heading),
                position[1] + dim_y / 2 * math.cos(heading) - dim_x / 2 * math.sin(heading))
-        verts = [vx1, vx2, vx3, vx4]
+        hull = [vx1, vx2, vx3, vx4]
 
-        vx1 = (position[0] + sdim_x / 2 * math.cos(heading) + sdim_y / 2 * math.sin(heading),
-               position[1] - sdim_y / 2 * math.cos(heading) + sdim_x / 2 * math.sin(heading))
-        vx2 = (position[0] + sdim_x / 2 * math.cos(heading) - sdim_y / 2 * math.sin(heading),
-               position[1] + sdim_y / 2 * math.cos(heading) + sdim_x / 2 * math.sin(heading))
-        vx3 = (position[0] - sdim_x / 2 * math.cos(heading) + sdim_y / 2 * math.sin(heading),
-               position[1] - sdim_y / 2 * math.cos(heading) - sdim_x / 2 * math.sin(heading))
-        vx4 = (position[0] - sdim_x / 2 * math.cos(heading) - sdim_y / 2 * math.sin(heading),
-               position[1] + sdim_y / 2 * math.cos(heading) - sdim_x / 2 * math.sin(heading))
+        vx1 = (position[0] + max[0] * dim_x / 2 * math.cos(heading) + max[2] * dim_y / 2 * math.sin(heading),
+               position[1] - max[2] * dim_y / 2 * math.cos(heading) + max[0] * dim_x / 2 * math.sin(heading))
+        vx2 = (position[0] + max[0] * dim_x / 2 * math.cos(heading) - max[3] * dim_y / 2 * math.sin(heading),
+               position[1] + max[3] * dim_y / 2 * math.cos(heading) + max[0] * dim_x / 2 * math.sin(heading))
+        vx3 = (position[0] - max[1] * dim_x / 2 * math.cos(heading) + max[2] * dim_y / 2 * math.sin(heading),
+               position[1] - max[2] * dim_y / 2 * math.cos(heading) - max[1] * dim_x / 2 * math.sin(heading))
+        vx4 = (position[0] - max[1] * dim_x / 2 * math.cos(heading) - max[3] * dim_y / 2 * math.sin(heading),
+               position[1] + max[3] * dim_y / 2 * math.cos(heading) - max[1] * dim_x / 2 * math.sin(heading))
+        mverts = [vx1, vx2, vx3, vx4]
+
+        vx1 = (position[0] + safety[0] * dim_x / 2 * math.cos(heading) + safety[2] * dim_y / 2 * math.sin(heading),
+               position[1] - safety[2] * dim_y / 2 * math.cos(heading) + safety[0] * dim_x / 2 * math.sin(heading))
+        vx2 = (position[0] + safety[0] * dim_x / 2 * math.cos(heading) - safety[3] * dim_y / 2 * math.sin(heading),
+               position[1] + safety[3] * dim_y / 2 * math.cos(heading) + safety[0] * dim_x / 2 * math.sin(heading))
+        vx3 = (position[0] - safety[1] * dim_x / 2 * math.cos(heading) + safety[2] * dim_y / 2 * math.sin(heading),
+               position[1] - safety[2] * dim_y / 2 * math.cos(heading) - safety[1] * dim_x / 2 * math.sin(heading))
+        vx4 = (position[0] - safety[1] * dim_x / 2 * math.cos(heading) - safety[3] * dim_y / 2 * math.sin(heading),
+               position[1] + safety[3] * dim_y / 2 * math.cos(heading) - safety[1] * dim_x / 2 * math.sin(heading))
         sverts = [vx1, vx2, vx3, vx4]
 
         vx1 = polygon_data['vx1']
         vx2 = polygon_data['vx2']
         vx3 = polygon_data['vx3']
         vx4 = polygon_data['vx4']
-        mverts = [vx1, vx2, vx3, vx4]
+        verts = [vx1, vx2, vx3, vx4]
 
-        # verts = polygon_data['vxs']
-        center = np.mean(verts, axis=0)
-        sorted_points = sorted(verts, key=lambda p: np.arctan2(p[1] - center[1], p[0] - center[0]))
+        center = np.mean(hull, axis=0)
+        sorted_points = sorted(hull, key=lambda p: np.arctan2(p[1] - center[1], p[0] - center[0]))
         poly = Polygon(sorted_points, facecolor='k', edgecolor='k')
         ax.add_patch(poly)
-        centroid_x = sum(x for x, y in verts) / len(verts)
-        centroid_y = sum(y for x, y in verts) / len(verts)
+        centroid_x = sum(x for x, y in hull) / len(hull)
+        centroid_y = sum(y for x, y in hull) / len(hull)
+
+        center = np.mean(verts, axis=0)
+        sorted_points = sorted(verts, key=lambda p: np.arctan2(p[1] - center[1], p[0] - center[0]))
+        poly = Polygon(sorted_points, facecolor='None', edgecolor='b')
+        ax.add_patch(poly)
 
         # verts = polygon_data['vxs']
         center = np.mean(sverts, axis=0)
@@ -141,10 +159,17 @@ for timestamp in timeinstants:
         poly = Polygon(sorted_points, facecolor='None', edgecolor='g')
         ax.add_patch(poly)
 
-        plt.arrow(centroid_x, centroid_y, 0.3 * math.cos(heading), 0.3 * math.sin(heading), head_width=0.1,
-                  head_length=0.1, color='blue')
+        plt.arrow(centroid_x, centroid_y, dim_x*0.15 * math.cos(heading), dim_x*0.15 * math.sin(heading),
+                  width=dim_y*0.05,
+                  head_width=dim_y * 0.3,
+                  head_length=dim_y * 0.2, color='blue')
 
-        ax.text(centroid_x - sdim_x / 2 - 0.2, centroid_y, polygon_data['obs'], ha='center', va='center', fontsize=10)
+        plt.arrow(centroid_x, centroid_y, dim_x*0.15 * math.cos(vel_dir), dim_x*0.15 * math.sin(vel_dir),
+                  width=dim_y*0.05,
+                  head_width=dim_y * 0.3,
+                  head_length=dim_y * 0.2, color='red')
+
+        ax.text(centroid_x - dim_y*1.3* math.sin(heading), centroid_y + dim_y*1.3* math.cos(heading), polygon_data['obs'], ha='center', va='center', fontsize=10)
         ax.axis('equal')
         # ax.axis('square')
         ax.set_xlim(8, 12)
