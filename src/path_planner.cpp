@@ -2,6 +2,7 @@
 
 // Compute the path to reach the goal
 bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colregs, Path &path) {
+  path = Path();
   colregs_compliance = colregs;
   // Plot stuff
   {
@@ -411,10 +412,21 @@ bool path_planner::FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const 
 
 void path_planner::BuildPath(const Node &goal, Path &path) {    // Build path from goal to initial position
   Node current = goal;
-  while (current.parent != nullptr) {
+  // goal is supposed to have at least one root
+  path.waypoints.push(current);
+  {
+    plotWpsFile_ << "Time_" << current.time << std::endl;
+    plotWpsFile_ << "Waypoint_" << current.position(0) << "_" << current.position(1) << std::endl;
+    for (const obs_ptr &obs_ptr: obss_info_.obstacles) {
+      plotWpsFile_ << obs_ptr->plotStuff(current.time);
+      plotWpsFile_.flush();
+    }
+  }
+  std::shared_ptr<Node> ptr = current.parent;
+
+  do{
+    current = *ptr;
     path.waypoints.push(current);
-
-
     //  Plot stuff
     {
       plotWpsFile_ << "Time_" << current.time << std::endl;
@@ -424,8 +436,9 @@ void path_planner::BuildPath(const Node &goal, Path &path) {    // Build path fr
         plotWpsFile_.flush();
       }
     }
-    current = *(current.parent);
+    ptr = current.parent;
   }
+  while(ptr != nullptr);
 }
 
 // Given some obstacle vertexes, find the intercept points
@@ -504,44 +517,7 @@ bool path_planner::IsInAnyBB(TPoint time_point,
   return false;
 }
 
-/*void path_planner::FindExitVxs(const Eigen::Vector2d &element_pos, const Obstacle &obs, std::vector<vx_id> &allowedVxs, double time ) {
-  Eigen::Vector2d bodyObs_e = GetProjectionInObsFrame(element_pos, obs, 0.0);
-
-  bool IsLeftOfDiag1 = (bodyObs_e.y() >=
-                        obs.vxs[1].position.y() / obs.vxs[1].position.x() *
-                        bodyObs_e.x()); // Being left of diag FL-RR
-  bool IsLeftOfDiag2 = (bodyObs_e.y() >=
-                        obs.vxs[0].position.y() / obs.vxs[0].position.x() *
-                        bodyObs_e.x()); // Being left of diag FR-LL
-
-  if (IsLeftOfDiag1 && IsLeftOfDiag2) {
-    // USV in port side of bb
-    //  go for FL or RL
-    allowedVxs.push_back(FL);
-    allowedVxs.push_back(RL);
-  } else {
-    if (IsLeftOfDiag1) {
-      // USV in stern side of bb
-      //  go for RL or RR
-      allowedVxs.push_back(RL);
-      allowedVxs.push_back(RR);
-    } else {
-      if (IsLeftOfDiag2) {
-        // USV in bow side of bb
-        //  go for FR or FL
-        allowedVxs.push_back(FR);
-        allowedVxs.push_back(FL);
-      } else {
-        // USV in starboard side of bb
-        //  go for FR or RR
-        allowedVxs.push_back(FR);
-        allowedVxs.push_back(RR);
-      }
-    }
-  }
-}*/
-
-bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, double time, Path path) {
+bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, Path path) {
   // the waypoint should be just the ones left to reach, not the whole path returned by the library
   if (path.empty()) {
     return false;
@@ -551,16 +527,16 @@ bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, double time, Path pa
 
   Node start;
   start.position = vh_pos;
-  start.time = time;
+  start.time = 0;
+  start.vh_speed = path.top().vh_speed;
+  path.pop();
 
+  colregs_compliance = false;
   while (!path.empty()) {
     Node goal = path.top();
     path.pop();
-    //std::cout << "Pos: " << wp.position << std::endl;
-    //std::cout << "Time: " << wp.time << std::endl;
-    std::shared_ptr<std::vector<Node>> collision_nodes(new std::vector<Node>);
-    CheckCollision(start, goal, collision_nodes);
-    if (collision_nodes->size() > 1) return false;
+
+    if(!CheckCollision(start, goal)) return false;
 
     start = goal; // check =operator definition
   }

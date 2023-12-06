@@ -14,7 +14,7 @@ std::vector<double> generateRange(double start, double end, double step) {
 int main(int, char **) {
   int scenario = 1;
   double count = 0;
-  while (scenario == 1 && count < 1000) {
+  while (scenario == 1 && count < 1) {
     count++;
 
     std::cout << "----------------------------------------\n STARTING NEW PLAN " << std::endl;
@@ -196,8 +196,8 @@ int main(int, char **) {
     Path path2;
     std::cout << std::endl << "Colregs: true";
     if (planner2.ComputePath(goal, true, path2)) {
-      if (planner2.CheckPath(v_info.position, 0, path2)) {
-        //std::cout << "Checked!!" << std::endl;
+      if (planner2.CheckPath(v_info.position, path2)) {
+        std::cout << "Checked!!" <<std::endl;
       }
     } else {
       std::cout << std::endl << "Not found." << std::endl;

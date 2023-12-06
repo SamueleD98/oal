@@ -6,5 +6,6 @@
 /usr/local/include/oal/data_structs/misc.hpp
 /usr/local/include/oal/data_structs/node.hpp
 /usr/local/include/oal/data_structs/obstacle.hpp
+/usr/local/include/oal/data_structs/bounding_box.hpp
 /usr/local/share/oal/cmake/oalConfig.cmake
 /usr/local/share/oal/cmake/oalConfig-debug.cmake

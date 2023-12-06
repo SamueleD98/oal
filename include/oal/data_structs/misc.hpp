@@ -25,7 +25,11 @@ struct Path {
     std::vector<std::string> overtakingObsList;
     std::vector<std::string> overtakenObsList;
 
-    bool empty() const{
+    [[nodiscard]] size_t size() const{
+      return waypoints.size();
+    }
+
+    [[nodiscard]] bool empty() const{
       return waypoints.empty();
     }
 
@@ -34,7 +38,6 @@ struct Path {
     }
 
     void pop(){
-      // TODO still necessary?
       // When reached a node, delete it from Path and set the obstacle as overtaken to avoid future crossing
       Node nd = waypoints.top();
       if(nd.obs_ptr != nullptr){

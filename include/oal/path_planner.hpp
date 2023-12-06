@@ -56,6 +56,7 @@ private:
 
 public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.
+    path_planner() = default;
 
     path_planner(VehicleInfo v_info, const std::vector<Obstacle>& obstacles)
             : v_info_(std::move(v_info)) {
@@ -75,14 +76,17 @@ public:
     bool ComputePath(const Eigen::Vector2d &goal, bool colregs, Path &path);
 
     // Given a trajectory, checks if it's safe
-    bool CheckPath(const Eigen::Vector2d &vh_pos, double time, Path path);
+    bool CheckPath(const Eigen::Vector2d &vh_pos, Path path);
 
     void SetVhData(VehicleInfo v_info) {
       v_info_ = std::move(v_info);
     }
 
-    void SetObssData(ObstaclesInfo obss_info) {
-      obss_info_ = std::move(obss_info);
+    void SetObssData(const std::vector<Obstacle>& obstacles) {
+      obss_info_.obstacles.clear();
+      for(const auto& obs : obstacles){
+        obss_info_.obstacles.push_back(std::make_shared<Obstacle>(obs));
+      }
     }
 };
 

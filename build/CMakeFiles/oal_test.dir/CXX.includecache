@@ -6,6 +6,8 @@
 
 #IncludeRegexTransform: 
 
+../include/oal/data_structs/bounding_box.hpp
+
 ../include/oal/data_structs/misc.hpp
 eigen3/Eigen/Eigen
 -
@@ -53,12 +55,16 @@ oal/data_structs/vertex.hpp
 ../include/oal/data_structs/oal/data_structs/vertex.hpp
 oal/data_structs/tpoint.hpp
 ../include/oal/data_structs/oal/data_structs/tpoint.hpp
+oal/data_structs/bounding_box.hpp
+../include/oal/data_structs/oal/data_structs/bounding_box.hpp
 
 ../include/oal/data_structs/tpoint.hpp
 eigen3/Eigen/Eigen
 -
 
 ../include/oal/data_structs/vertex.hpp
+utility
+-
 oal/data_structs/tpoint.hpp
 ../include/oal/data_structs/oal/data_structs/tpoint.hpp
 
