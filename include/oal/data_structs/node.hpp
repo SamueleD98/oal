@@ -90,7 +90,7 @@ public:
     void UpdateCosts(const Eigen::Vector2d &goal);
 
     // Given some nodes, get the closer one
-    void GetCloser(const std::shared_ptr<std::vector<Node>> &nodes_list, Node &closer) const;
+    void GetCloser(const std::vector<Node> &nodes_list, Node &closer) const;
 
     // Check if its obs and vx have already been visited in its chain of nodes
     bool IsUnique(Node other);
@@ -99,12 +99,12 @@ public:
     void FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs);
 
     // Find the exit vxs that wouldn't need to cross the main diagonals and save them in a given vector
-    void FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) const;
+    void FindExitVxs(std::vector<vx_id> &allowedVxs) const;
 
     // If newly created node already exists in set and second heuristic says it's better, erase the already existing one
-    bool RemoveWorstDuplicates(std::multiset<Node> &set) const;
+    //bool RemoveWorstDuplicates(std::multiset<Node> &set) const;
 
-    bool HasAncestor(const Node &node) const;
+    //bool HasAncestor(const Node &node) const;
 
     // Set node parent, inherit its overtakingObsList and update "alternative costs"
     void SetParent(const Node& parent_node) {
@@ -149,7 +149,7 @@ public:
     }
 
 
-    bool RemoveWorstDuplicates(std::multiset<Node> &set);
+    //bool RemoveWorstDuplicates(std::multiset<Node> &set);
 };
 
 

@@ -53,7 +53,6 @@ void Obstacle::SetSize(double dist_x, double dist_y, double theta,
     bb_dim_y = bb.dim_y / 2* bb_ratio_y_safety;
   }
 
-  //HERE
   if (y_between && !x_max) {
     bb_dim_y = dist_y;
   }

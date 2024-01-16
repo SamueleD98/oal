@@ -14,7 +14,7 @@ std::vector<double> generateRange(double start, double end, double step) {
 int main(int, char **) {
   int scenario = 1;
   double count = 0;
-  while (scenario == 1 && count < 1) {
+  while (scenario == 1 && count < 100) {
     count++;
 
     std::cout << "----------------------------------------\n STARTING NEW PLAN " << std::endl;

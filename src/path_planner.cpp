@@ -20,7 +20,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   }
 
   std::multiset<Node> open_set;  // set of reachable nodes, ordered by total cost (ascending), still to analyze
-  std::multiset<Node> reachable_full_set; // set of all the reachable nodes (open_set + already analyzed)
+  std::multiset<Node> reachable_full_set; // set of all the reachable nodes (open_set + closed set)
   Node goal, current;
   // Goal node setup
   goal.position = goal_position;
@@ -64,9 +64,6 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
 
     // Check if goal is reachable
     if (CheckFinal(current, goal)) {
-      if(goal.time < 0){
-        std::cout<<" heeeey ";
-      }
       found = true;
       break;
     }
@@ -138,9 +135,6 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   goal.print();
   BuildPath(goal, path);
 
-  if(goal.time < 0){
-    std::cout<<" heeeey ";
-  }
   path.overtakingObsList = current.overtakingObsList;
   //std::cout << "count: " << current.parent.use_count() << std::endl;
   return true;
@@ -157,7 +151,7 @@ bool path_planner::CheckFinal(const Node &start, Node &goal) {
     // otherwise there's an actual collision before getting to that goal
     // closer collision, maybe move it in checkCollision
     Node closer_collision;
-    start.GetCloser(collision_nodes, closer_collision);
+    start.GetCloser(*collision_nodes, closer_collision);
     bool found_new = false;
     for (const auto &s_obs_ptr: *surrounding_obs) {
       if (s_obs_ptr.get() == closer_collision.obs_ptr.get()) {
@@ -453,12 +447,6 @@ void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
       if (obstacle.speed<0.001){
         t_instants.push_back(vertex_vehicle.norm()/start.vh_speed);
       }else{
-        /*Eigen::Vector3d vertex_vehicle_3d(vertex_vehicle.x(), vertex_vehicle.y(), 0);
-        double gamma_sqr = (pow(start.vh_speed, 2) + 1) / pow(pow(start.vh_speed, 2) + 1, 2);
-        double c2 = 1 - gamma_sqr * bb_timeDirection.dot(bb_timeDirection);
-        double c1 = - gamma_sqr * bb_timeDirection.dot(vertex_vehicle_3d);
-        double c0 = -gamma_sqr * vertex_vehicle_3d.dot(vertex_vehicle_3d);
-        */
         double det = pow(start.vh_speed,2)+1;
         double c2 = 1 - (pow(bb_timeDirection.x(),2)+pow(bb_timeDirection.y(),2)+1)/det;
         double c1 = - (bb_timeDirection.x()*vertex_vehicle.x()+bb_timeDirection.y()*vertex_vehicle.y())/det;

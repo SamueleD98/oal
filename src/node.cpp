@@ -8,14 +8,14 @@ void Node::UpdateCosts(const Eigen::Vector2d &goal) {
   costTotal = costToReach + costToGoal;
 }
 
-void Node::GetCloser(const std::shared_ptr<std::vector<Node>> &nodes_list, Node &closer) const {
-  if (nodes_list->empty()) {
+void Node::GetCloser(const std::vector<Node> &nodes_list, Node &closer) const {
+  if (nodes_list.empty()) {
     closer = *this;
   } else {
-    closer = nodes_list->at(0);
+    closer = nodes_list.at(0);
     Eigen::Vector2d dist_v = closer.position - position;
     double min_distance = dist_v.norm();
-    for (const auto &node: *nodes_list) {
+    for (const auto &node: nodes_list) {
       dist_v = node.position - position;
       double dist = dist_v.norm();
       if (dist < min_distance) {
@@ -39,21 +39,24 @@ bool Node::IsUnique(Node other) {
 
 void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) {
   if (obs_ptr != nullptr) {
+    // Ownship on a bb
     if (obs_ptr->id == target_obs.id) {
+      // Ownship already on the target bb
       if (vx == NA){
         // OS in TS bb, visible are the exit ones
         std::vector<vx_id> allowedVxs;
-        FindExitVxs(target_obs, allowedVxs);
+        FindExitVxs(allowedVxs);
         vxs_abs[allowedVxs[0]].isVisible = true;
         vxs_abs[allowedVxs[1]].isVisible = true;
-      }
-      // Set the adjacent vxs as visible
-      if (vx == FR || vx == RL) {
-        vxs_abs[1].isVisible = true;
-        vxs_abs[2].isVisible = true;
       } else {
-        vxs_abs[0].isVisible = true;
-        vxs_abs[3].isVisible = true;
+        // Set the adjacent vxs as visible
+        if (vx == FR || vx == RL) {
+          vxs_abs[1].isVisible = true;
+          vxs_abs[2].isVisible = true;
+        } else {
+          vxs_abs[0].isVisible = true;
+          vxs_abs[3].isVisible = true;
+        }
       }
       return;
     }
@@ -97,7 +100,7 @@ void Node::FindVisibilityVxs(Obstacle target_obs, std::vector<Vertex> &vxs_abs) 
   }
 }
 
-bool Node::RemoveWorstDuplicates(std::multiset<Node> &set) {
+/*bool Node::RemoveWorstDuplicates(std::multiset<Node> &set) {
   return true;
   for (auto node_it = set.begin(); node_it != set.end();) {
     bool isSimilar = ((position-node_it->position).norm()<0.01 && obs_ptr.get() == node_it->obs_ptr.get() && vx == node_it->vx);
@@ -138,9 +141,10 @@ bool Node::RemoveWorstDuplicates(std::multiset<Node> &set) {
     }
   }
   return true;
-}
+}*/
 
-void Node::FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) const {
+void Node::FindExitVxs(std::vector<vx_id> &allowedVxs) const {
+  Obstacle obs = *obs_ptr;
   Eigen::Vector2d bodyObs_e = GetProjectionInObsFrame(position, obs, 0.0);
 
   bool IsLeftOfDiag1 = (bodyObs_e.y() >=
@@ -177,7 +181,7 @@ void Node::FindExitVxs(const Obstacle &obs, std::vector<vx_id> &allowedVxs) cons
   }
 }
 
-bool Node::HasAncestor(const Node &node) const {
+/*bool Node::HasAncestor(const Node &node) const {
   if(this->parent != nullptr){
     Node current = *this->parent;
     while (current.parent != nullptr) {
@@ -188,7 +192,7 @@ bool Node::HasAncestor(const Node &node) const {
     }
   }
   return false;
-}
+}*/
 
 
 
