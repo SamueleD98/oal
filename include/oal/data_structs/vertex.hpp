@@ -20,6 +20,7 @@ struct Vertex {
     Eigen::Vector2d position; //absolute
     bool isVisible = false; //visibility from own ship
     TPoint intercept_point;
+    double intercept_speed = 0;
     /*Eigen::Vector2d ip_position;  //intercept point position (absolute)
     double ip_time = -1; //intercept time*/
 

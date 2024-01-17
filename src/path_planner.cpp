@@ -46,38 +46,30 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
     current = *open_set.begin();
     open_set.erase(open_set.begin());
 
-    if(open_set.size()>5000) {
+    if(open_set.size()>5000 && (open_set.size() % 10000 == 0)) {
       std::cout << "Number of nodes to analyze: " << open_set.size() << std::endl;
-      /*Node best = current;
-      std::multiset<Node> temp = open_set;
-      while (!temp.empty()) {
-        Node node = *temp.begin();
-        temp.erase(temp.begin());
-        if (node.costToGoal < goal.costToGoal) {
-          best = node;
-        }
-      }
-      auto dist = goal_position - best.position;
-      std::cout <<"Distance: "<< dist.norm()<<std::endl;
-      //current.print();*/
     }
 
     // Check if goal is reachable
-    if (CheckFinal(current, goal)) {
+    if (CheckFinal(current, goal, open_set, reachable_full_set)) {
       found = true;
       break;
     }
 
     for (const obs_ptr &obs_ptr: obss_info_.obstacles) {
+      std::vector<Vertex> visible_vxs, reachable_vxs;
       Obstacle obs = *obs_ptr.get();
-      std::vector<Vertex> reachable_vxs;
-      obs.FindAbsVxs(current.time, reachable_vxs); //Find vertexes in abs frame
-      current.FindVisibilityVxs(obs, reachable_vxs);
-      FindInterceptPoints(current, obs, reachable_vxs); //Compute when every visible vertex is intercepted
+      obs.FindAbsVxs(current.time, visible_vxs); //Find vertexes in abs frame
+      current.FindVisibilityVxs(obs, visible_vxs);
+      for (double &speed: v_info_.velocities) {
+        FindInterceptPoints(current, obs, speed, visible_vxs,
+                            reachable_vxs); //Compute when every visible vertex is intercepted
+      }
       // Check collision for each of the visible and intercept-able vxs
       for (const Vertex &vx: reachable_vxs) {
         // Create new Node
         Node new_node(vx.intercept_point, obs_ptr, vx.id, current);
+        new_node.speed_to_it = vx.intercept_speed;
         if (CheckColreg(current, new_node)) {
           // The path to vx respects the colregs (if it needs to)
           if (CheckCollision(current, new_node)) {
@@ -87,13 +79,9 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
               continue;
             }
             // Save new node
-            for (double &speed: v_info_.velocities) {
-              // Every node will expand with the different velocities
-              new_node.vh_speed = speed;
-              new_node.UpdateCosts(goal_position);
-              open_set.insert(new_node);
-              reachable_full_set.insert(new_node);
-            }
+            new_node.UpdateCosts(goal_position, GetHighestSpeed());
+            open_set.insert(new_node);
+            reachable_full_set.insert(new_node);
            /* if (new_node.RemoveWorstDuplicates(reachable_full_set)) {
               // new_node is unique: either always been or it was better than similar and so the other was trashed
               //     otherwise discarded because better one already analyzed
@@ -113,70 +101,75 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
     }
   }
 
-  if(!found || goal.time == 0){
+  if(!found || current.time == 0){
     // No path found
     if ( current.parent == nullptr) return false; // still in start
     // TODO best estimate
     std::cout << " NEW GOAL ";
     // Find the node with the smallest est. time to goal among the analyzed ones
-    goal = current;
+    Node best_goal = current;
     while (!reachable_full_set.empty()) {
       Node node = *reachable_full_set.begin();
       reachable_full_set.erase(reachable_full_set.begin());
-      if (node.costToGoal < goal.costToGoal) {
-        goal = node;
+      if (node.costToGoal < best_goal.costToGoal) {
+        best_goal = node;
       }
     }
-    if (goal.position == v_info_.position) return false; // new goal is starting point
+    if (best_goal.position == v_info_.position) return false; // new goal is starting point
+    current = best_goal;
   }
 
-
-
-  goal.print();
-  BuildPath(goal, path);
+  current.print();
+  BuildPath(current, path);
 
   path.overtakingObsList = current.overtakingObsList;
   //std::cout << "count: " << current.parent.use_count() << std::endl;
   return true;
 }
 
-bool path_planner::CheckFinal(const Node &start, Node &goal) {
-  std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
-  double goal_time = start.time + (goal.position - start.position).norm() / start.vh_speed;
-  if (IsInAnyBB({goal.position, goal_time}, surrounding_obs)) {
-    // the goal is unreachable, let's try and find a new goal.
-    std::shared_ptr<std::vector<Node>> collision_nodes(new std::vector<Node>);
-    CheckCollision(start, goal, collision_nodes); //run check collision to get the collision points
-    // The new goal might be the closer collision point iff it is a surrounding obs
-    // otherwise there's an actual collision before getting to that goal
-    // closer collision, maybe move it in checkCollision
-    Node closer_collision;
-    start.GetCloser(*collision_nodes, closer_collision);
-    bool found_new = false;
-    for (const auto &s_obs_ptr: *surrounding_obs) {
-      if (s_obs_ptr.get() == closer_collision.obs_ptr.get()) {
-        goal = closer_collision;
-        if ((goal.position-start.position).norm() <0.1){
-          // No motion is possible, end here
-          return true;
-        }
-        found_new = true;
-        std::cout << "Trying different goal!" << std::endl;
-        break;
-      }
-    }
-    if (!found_new) return false;
-  }
-  if (CheckCollision(start, goal)) {
-    // colregs compliance DOES NOT HOLD IF GOAL WAS MADE IN THIS FUNCTION
-    Eigen::Vector2d dist_to_goal = goal.position - start.position;
-    goal.time = start.time + dist_to_goal.norm() / start.vh_speed;
-    //goal.parent = std::make_shared<Node>(start);
-    goal.SetParent(start);
+bool path_planner::CheckFinal(const Node &start, Node goal, std::multiset<Node> &open_set, std::multiset<Node> &reachable_full_set) {
+  // True if start == goal
+  if((goal.position - start.position).norm() <= acceptance_radius || start.is_final){
     return true;
+  }
+
+  for (double &speed: v_info_.velocities) {
+    goal.speed_to_it = speed;
+    std::shared_ptr<std::vector<obs_ptr>> surrounding_obs(new std::vector<obs_ptr>);
+    goal.time = start.time + (goal.position - start.position).norm() / goal.speed_to_it;
+    // Check if goal is unreachable just for it being in one bb (this, for every possible velocity)
+    if (IsInAnyBB({goal.position, goal.time}, surrounding_obs)) {
+      // the goal is unreachable, let's try and find a new goal.
+      std::shared_ptr<std::vector<Node>> collision_nodes(new std::vector<Node>);
+      CheckCollision(start, goal, collision_nodes); //run check collision to get the collision points
+      // The new goal might be the closer collision point iff it is a surrounding obs
+      // otherwise there's an actual collision before getting to that goal
+      // closer collision, maybe move it in checkCollision
+      Node closer_collision;
+      start.GetCloser(*collision_nodes, closer_collision);
+      for (const auto &s_obs_ptr: *surrounding_obs) {
+        if (s_obs_ptr.get() == closer_collision.obs_ptr.get()) {
+          Node new_node(TPoint({closer_collision.position, closer_collision.time}), s_obs_ptr, NA, start);
+          new_node.speed_to_it = speed;
+          new_node.is_final = true;
+          new_node.UpdateCosts(goal.position, GetHighestSpeed());
+          open_set.insert(new_node);
+          reachable_full_set.insert(new_node);
+          break;
+        }
+      }
+    }else if (CheckCollision(start, goal)) {
+      // From start with current speed, goal is reachable => add goal as node in open_set
+      // TODO actually if speed is highest when this condition is verified, then this is best option, maybe optimize it
+      goal.SetParent(start);
+      goal.UpdateCosts(goal.position, GetHighestSpeed());
+      open_set.insert(goal);
+      reachable_full_set.insert(goal);
+    }
   }
   return false;
 }
+
 
 bool path_planner::CheckColreg(const Node &start, Node &goal) const {
   // Check only if colregs compliance is requested
@@ -235,13 +228,17 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
   // vehicle path to check for collision
   Eigen::Vector3d path = goal3d - start3d;
   // time from start to goal
-  goal3d[2] = path.norm() / start.vh_speed;
+  //goal3d[2] = path.norm() / goal.speed_to_it;
   //path = goal3d - start3d;
+
+  if(start.vx == FL){
+    bool stop  =true;
+  }
 
   // plot
   plotCKFile_ << "---" << std::endl;
   plotCKFile_ << "Start_" << start3d(0) << "_" << start3d(1) << "_" << start3d(2) << std::endl;
-  plotCKFile_ << "Goal_" << goal3d(0) << "_" << goal3d(1) << "_" << goal3d(2) << std::endl;
+  plotCKFile_ << "Goal_" << goal3d(0) << "_" << goal3d(1) << "_" << path.norm() / goal.speed_to_it << std::endl;
 
   for (const obs_ptr &obs_ptr: obss_info_.obstacles) {
     Obstacle obs = *obs_ptr.get();
@@ -281,8 +278,8 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
     if (isDepartingObs && start.vx == NA) {
       // Check both diagonals
       Eigen::Vector3d collision_point;
-      if (FindLinePlaneIntersectionPoint(vxs_abs[FR], vxs_abs[RL], bb_direction, start, goal3d, collision_point)
-          || FindLinePlaneIntersectionPoint(vxs_abs[FL], vxs_abs[RR], bb_direction, start, goal3d, collision_point)) {
+      if (FindLinePlaneIntersectionPoint(vxs_abs[FR], vxs_abs[RL], bb_direction, start, goal, collision_point)
+          || FindLinePlaneIntersectionPoint(vxs_abs[FL], vxs_abs[RR], bb_direction, start, goal, collision_point)) {
         return false;
       }
       continue;
@@ -323,7 +320,7 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
       }
 
       Eigen::Vector3d collision_point;
-      if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal3d,
+      if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal,
                                          collision_point)) {
         // The desired path crosses the face of the bb defined by the two vxs and its direction
         if (collision_points != nullptr){
@@ -353,7 +350,7 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
       }
 
       Eigen::Vector3d collision_point;
-      if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal3d,
+      if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal,
                                          collision_point)) {
         return false;
       }
@@ -364,9 +361,13 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
 }
 
 bool path_planner::FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const Eigen::Vector3d &bb_direction,
-                                                  const Node &start, const Eigen::Vector3d &goal,
+                                                  const Node &start, const Node &goal,
                                                   Eigen::Vector3d &collision_point) {
-  Eigen::Vector3d path = goal - Get3dPos(start);
+
+  Eigen::Vector3d goal3d = Get3dPos(goal);
+  Eigen::Vector3d path = goal3d - Get3dPos(start);
+  goal3d[2] = path.norm() / goal.speed_to_it;
+  path = goal3d - Get3dPos(start);
   Eigen::Vector3d vx1_pos = Get3dPos(vx1);
   Eigen::Vector3d vx2_pos = Get3dPos(vx2);
 
@@ -390,7 +391,7 @@ bool path_planner::FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const 
     // Get collision time and point
     Eigen::Vector3d doable_path = path * c_pos; // Part of the path prior the collision
     doable_path.z() = 0;
-    double collision_time = doable_path.norm() / start.vh_speed; // When the collision happens
+    double collision_time = doable_path.norm() / goal.speed_to_it; // When the collision happens
     doable_path.z() = collision_time;
     collision_point = Get3dPos(start) + doable_path; // Where the collision happens
     // Get vertexes at time t'
@@ -404,8 +405,7 @@ bool path_planner::FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const 
   return false;
 }
 
-void path_planner::BuildPath(const Node &goal, Path &path) {    // Build path from goal to initial position
-  Node current = goal;
+void path_planner::BuildPath(Node &current, Path &path) {    // Build path from goal to initial position
   // goal is supposed to have at least one root
   path.waypoints.push(current);
   {
@@ -436,18 +436,18 @@ void path_planner::BuildPath(const Node &goal, Path &path) {    // Build path fr
 }
 
 // Given some obstacle vertexes, find the intercept points
-void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
-                                       std::vector<Vertex> &vxs_abs) {
-  std::vector<Vertex> vxs;
+void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle, double vh_speed,
+                         std::vector<Vertex> visible_vxs, std::vector<Vertex>& reachable_vxs){
+  //std::vector<Vertex> vxs;
   Eigen::Vector3d bb_timeDirection(obstacle.speed * cos(obstacle.vel_dir), obstacle.speed * sin(obstacle.vel_dir), 1);
   for (auto i = 0; i < 4; i++) {
-    if (vxs_abs[i].isVisible) {
+    if (visible_vxs[i].isVisible) {
       std::vector<double> t_instants;
-      Eigen::Vector2d vertex_vehicle = vxs_abs[i].position - start.position;
-      if (obstacle.speed<0.001){
-        t_instants.push_back(vertex_vehicle.norm()/start.vh_speed);
+      Eigen::Vector2d vertex_vehicle = visible_vxs[i].position - start.position;
+      if (obstacle.speed<0.001){ // TODO choose value
+        t_instants.push_back(vertex_vehicle.norm()/vh_speed);
       }else{
-        double det = pow(start.vh_speed,2)+1;
+        double det = pow(vh_speed,2)+1;
         double c2 = 1 - (pow(bb_timeDirection.x(),2)+pow(bb_timeDirection.y(),2)+1)/det;
         double c1 = - (bb_timeDirection.x()*vertex_vehicle.x()+bb_timeDirection.y()*vertex_vehicle.y())/det;
         double c0 = - (pow(vertex_vehicle.x(),2)+pow(vertex_vehicle.y(),2))/det;
@@ -469,7 +469,7 @@ void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
       }
       std::vector<Eigen::Vector3d> points;
       for (double t: t_instants) {
-        Eigen::Vector3d point_3d = Get3dPos(vxs_abs[i]) + bb_timeDirection * t;
+        Eigen::Vector3d point_3d = Get3dPos(visible_vxs[i]) + bb_timeDirection * t;
         TPoint intercept_point;
         intercept_point.pos.x() = point_3d.x();
         intercept_point.pos.y() = point_3d.y();
@@ -482,14 +482,15 @@ void path_planner::FindInterceptPoints(const Node &start, Obstacle &obstacle,
         }
         // Save the point
         if (!isInAnyBB) {
-          Vertex vx = vxs_abs[i];
+          Vertex vx = visible_vxs[i];
           vx.intercept_point = intercept_point;
-          vxs.push_back(vx);
+          vx.intercept_speed = vh_speed;
+          reachable_vxs.push_back(vx);
         }
       }
     }
   }
-  vxs_abs = vxs;
+  //vxs_abs = vxs;
 }
 
 bool path_planner::IsInAnyBB(TPoint time_point,
@@ -511,22 +512,24 @@ bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, Path path) {
     return false;
   }
 
+  // Update vxs position based on ownship position (without uncertainty gap)
   FindObssLocalVxs(false);
 
   Node start;
   start.position = vh_pos;
   start.time = 0;
-  start.vh_speed = path.top().vh_speed;
+  //start.vh_speed = path.top().vh_speed;
   path.pop();
 
   colregs_compliance = false;
   while (!path.empty()) {
     Node goal = path.top();
+    goal.speed_to_it = path.top().speed_to_it;
     path.pop();
 
     if(!CheckCollision(start, goal)) return false;
 
-    start = goal; // check =operator definition
+    start = goal; // TODO check =operator definition
   }
   return true;
 }
@@ -557,11 +560,8 @@ bool path_planner::RootSetup(const Eigen::Vector2d &goal_position, std::multiset
       return false;
     }*/
   }
-  for (double &speed: v_info_.velocities) {
-    root.vh_speed = speed;
-    root.UpdateCosts(goal_position);
-    open_set.insert(root);
-  }
+  root.UpdateCosts(goal_position, GetHighestSpeed());
+  open_set.insert(root);
   return true;
 }
 

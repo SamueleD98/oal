@@ -14,10 +14,10 @@ std::vector<double> generateRange(double start, double end, double step) {
 int main(int, char **) {
   int scenario = 1;
   double count = 0;
-  while (scenario == 1 && count < 100) {
+  while (scenario == 1 && count < 1) {
     count++;
 
-    std::cout << "----------------------------------------\n STARTING NEW PLAN " << std::endl;
+    std::cout << "----------------------------------------\n STARTING NEW PLAN " << count<< std::endl;
 
     VehicleInfo v_info;
     Eigen::Vector2d goal;
@@ -32,9 +32,9 @@ int main(int, char **) {
 
     //std::cout << "Which scenario?" << std::endl;
     //std::cin  >>  scenario;
-    scenario = 1;
+    scenario = 2;
     //2, 3, 11, 10, 9, 8
-    v_info.velocities = generateRange(1, 1, 0.1);
+    v_info.velocities = generateRange(0.8, 1, 0.1);
 
     /* TODO scenario
      * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
@@ -97,7 +97,7 @@ int main(int, char **) {
         std::uniform_real_distribution<double> speed_gen(0, 2);
         std::uniform_real_distribution<double> heading_gen(-M_PI, M_PI);
         std::uniform_real_distribution<double> vel_dir_gen(-M_PI/6, M_PI/6);
-        for (auto i = 1; i < 10; i++) {
+        for (auto i = 1; i < 5; i++) {
           double heading = heading_gen(e1);
           Obstacle obs(std::to_string(i), {pos_gen(e1), pos_gen(e1)}, heading, speed_gen(e1), heading+vel_dir_gen(e1), bb_dimension);
           obs.print();
@@ -109,7 +109,7 @@ int main(int, char **) {
 
       case 2: {// head on WORKS (clear differences with/without Colregs)
         v_info.position = {10, 0};
-        Obstacle obs("1", {10.5, 13}, -M_PI / 2, 1, -M_PI / 2, bb_dimension);
+        Obstacle obs("1", {10.5, 35}, -M_PI / 2, 1, -M_PI / 2, bb_dimension);
         obstacles.push_back(obs);
         goal = {10, 20};
         break;
@@ -185,13 +185,13 @@ int main(int, char **) {
     path_planner planner1(v_info, obstacles);
     path_planner planner2(v_info, obstacles);
 
-    Path path1;
+    /*Path path1;
     std::cout << std::endl << "Colregs: false";
     if (planner1.ComputePath(goal, false, path1)) {
       std::cout << std::endl << "Found." << std::endl;
     } else {
       std::cout << std::endl << "Not found." << std::endl;
-    }
+    }*/
 
     Path path2;
     std::cout << std::endl << "Colregs: true";

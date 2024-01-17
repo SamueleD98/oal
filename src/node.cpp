@@ -1,10 +1,10 @@
 #include "oal/data_structs/node.hpp"
 #include "oal/helper_functions.hpp"
 
-void Node::UpdateCosts(const Eigen::Vector2d &goal) {
+void Node::UpdateCosts(const Eigen::Vector2d &goal, double highest_speed) {
   costToReach = time; //if the cost is the time to reach the target
   Eigen::Vector2d dist_to_goal = goal - position;
-  costToGoal = dist_to_goal.norm() / vh_speed;
+  costToGoal = dist_to_goal.norm() / highest_speed;
   costTotal = costToReach + costToGoal;
 }
 

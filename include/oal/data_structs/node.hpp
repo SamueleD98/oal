@@ -28,12 +28,15 @@ public:
     double costToReach = -1; //cost to reach the Node
     double costToGoal = -1; //estimated cost to reach Goal
     double costTotal = -1; //total cost
-    double vh_speed = 0; //vehicle speed from this node to next
+    //double vh_speed = 0; //vehicle speed from this node to next
+    double speed_to_it = 0;
     std::shared_ptr<Obstacle> obs_ptr = nullptr;
     vx_id vx = NA;
     std::shared_ptr<Node> parent = nullptr;
     std::vector<vx_id> currentObsLimitedVxs; //not viable vxs depending on maneuver
     std::vector<std::string> overtakingObsList; //list of obs to overtake from origin up to node
+
+    bool is_final = false;
 
     bool hasSimilar = false;
 
@@ -42,7 +45,7 @@ public:
 
     Node() = default;
 
-    Node(const TPoint& point, const std::shared_ptr<Obstacle> &obs_ptr, vx_id vx, Node& parent_node)
+    Node(const TPoint& point, const std::shared_ptr<Obstacle> &obs_ptr, vx_id vx, const Node& parent_node)
             : obs_ptr(obs_ptr), vx(vx) {
       position = point.pos;
       time = parent_node.time +  point.time;
@@ -56,7 +59,7 @@ public:
       costToReach = other.costToReach;
       costToGoal = other.costToGoal;
       costTotal = other.costTotal;
-      vh_speed = other.vh_speed;
+      //vh_speed = other.vh_speed;
       obs_ptr = other.obs_ptr;
       vx = other.vx;
       parent = other.parent;  // assuming that shared_ptr copy is what you want
@@ -87,7 +90,7 @@ public:
     }
 
     // Set estimated cost and total cost according to own ship speed
-    void UpdateCosts(const Eigen::Vector2d &goal);
+    void UpdateCosts(const Eigen::Vector2d &goal, double highest_speed);
 
     // Given some nodes, get the closer one
     void GetCloser(const std::vector<Node> &nodes_list, Node &closer) const;
@@ -111,7 +114,7 @@ public:
       parent = std::make_shared<Node>(parent_node);
       overtakingObsList = parent_node.overtakingObsList;
       // Update mtrcs
-      double headingChange = GetHeadingChange(); // [0, pi]
+      /*double headingChange = GetHeadingChange(); // [0, pi]
       double speedChange = vh_speed - parent->vh_speed;
       double dist = (position - parent->position).norm();
       // Alternative costs for when two nodes are the same (A* heuristic)
@@ -121,7 +124,7 @@ public:
       mtrcs.maxSpeed = std::max(parent->mtrcs.maxSpeed, parent->vh_speed);
       mtrcs.maxSpeedChange = std::max(parent->mtrcs.maxSpeedChange, abs(speedChange));  //TODO speedChange is also decelleration
       mtrcs.totDistance = parent->mtrcs.totDistance + dist;
-      mtrcs.averageSpeed = (parent->mtrcs.averageSpeed * parent->mtrcs.totDistance + parent->vh_speed * dist) / mtrcs.totDistance;
+      mtrcs.averageSpeed = (parent->mtrcs.averageSpeed * parent->mtrcs.totDistance + parent->vh_speed * dist) / mtrcs.totDistance;*/
     }
 
 
@@ -141,7 +144,7 @@ public:
       while (node.parent != nullptr) {
         std::cout << "   - time: " << node.time << "  Pos: " << node.position.x() << " " << node.position.y();
         if(node.obs_ptr != nullptr){
-          std::cout << "   Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  speed: " << node.vh_speed;
+          std::cout << "   Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  speed: " ;//<< node.vh_speed;
         }
         std::cout << std::endl;
         node = *node.parent;
