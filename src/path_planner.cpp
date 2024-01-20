@@ -129,7 +129,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
 
 bool path_planner::CheckFinal(const Node &start, Node goal, std::multiset<Node> &open_set, std::multiset<Node> &reachable_full_set) {
   // True if start == goal
-  if((goal.position - start.position).norm() <= acceptance_radius || start.is_final){
+  if((goal.position - start.position).norm() <= acceptanceRadius || start.is_final){
     return true;
   }
 

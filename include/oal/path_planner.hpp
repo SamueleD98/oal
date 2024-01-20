@@ -13,7 +13,7 @@
 #define MAX_TIME 10000
 #define HeadOnAngle (15*(M_PI/180))
 #define OvertakingAngle (112*(M_PI/180))
-#define acceptance_radius (5)
+#define acceptanceRadius (5)
 
 class path_planner {
 private:
