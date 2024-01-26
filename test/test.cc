@@ -14,7 +14,7 @@ std::vector<double> generateRange(double start, double end, double step) {
 int main(int, char **) {
   int scenario = 1;
   double count = 0;
-  while (scenario == 1 && count < 1) {
+  while (scenario == 1 && count < 10000) {
     count++;
 
     std::cout << "----------------------------------------\n STARTING NEW PLAN " << count<< std::endl;
@@ -29,12 +29,16 @@ int main(int, char **) {
                          1.5, 1.2,
                          1.5, 1.5,
                          0);
-
     //std::cout << "Which scenario?" << std::endl;
     //std::cin  >>  scenario;
-    scenario = 2;
-    //2, 3, 11, 10, 9, 8
-    v_info.velocities = generateRange(0.8, 1, 0.1);
+
+    scenario = 1;
+    double n_obs = 10;
+    double area_size= 500;
+    v_info.velocities = generateRange(0.5, 1.5, 0.1);
+    // Keep constants
+    v_info.position = {10, 0};
+    goal = {10, 250};
 
     /* TODO scenario
      * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
@@ -43,6 +47,20 @@ int main(int, char **) {
     */
     //flag = false;
     switch (scenario) {
+
+      case 666:{
+
+        obstacles.push_back(Obstacle("1", {32.2, -34.4}, -0.00484, 0.49, -0.294, bb_dimension));
+        obstacles.push_back(Obstacle("2", {9.52, 7.08}, 1.45, 0.637, 1.52, bb_dimension));
+
+        v_info.position = {10, 0};
+
+        goal = {10, 50};
+        break;
+
+
+
+      }
       case 21: {
         //Overtaking and crossing situation on the high seas
         // https://www.advanced.ecolregs.com/index.php?option=com_k2&view=item&id=172:overtaking-and-crossing-situation-on-the-high-seas&Itemid=359&lang=en
@@ -88,22 +106,20 @@ int main(int, char **) {
         break;
       }
       case 1: {// rand static or moving obstacles
-        v_info.position = {10, 0};
         // Seed with a real random value, if available
         std::random_device r;
         // Choose a random mean between 1 and 6
         std::default_random_engine e1(r());
-        std::uniform_real_distribution<double> pos_gen(-60, 60);
+        std::uniform_real_distribution<double> pos_gen(-area_size/2, area_size/2);
         std::uniform_real_distribution<double> speed_gen(0, 2);
         std::uniform_real_distribution<double> heading_gen(-M_PI, M_PI);
-        std::uniform_real_distribution<double> vel_dir_gen(-M_PI/6, M_PI/6);
-        for (auto i = 1; i < 5; i++) {
+        std::uniform_real_distribution<double> vel_dir_gen(-M_PI/8, M_PI/8);
+        for (auto i = 0; i < n_obs; i++) {
           double heading = heading_gen(e1);
-          Obstacle obs(std::to_string(i), {pos_gen(e1), pos_gen(e1)}, heading, speed_gen(e1), heading+vel_dir_gen(e1), bb_dimension);
+          Obstacle obs(std::to_string(i+1), {pos_gen(e1), pos_gen(e1)}, heading, speed_gen(e1), heading+vel_dir_gen(e1), bb_dimension);
           obs.print();
           obstacles.push_back(obs);
         }
-        goal = {10, 50};
         break;
       }
 
@@ -194,8 +210,11 @@ int main(int, char **) {
     }*/
 
     Path path2;
-    std::cout << std::endl << "Colregs: true";
+    std::cout << std::endl << "Colregs: true"<< std::endl;
     if (planner2.ComputePath(goal, true, path2)) {
+      if (path2.debug_flag){
+        break;
+      }
       if (planner2.CheckPath(v_info.position, path2)) {
         std::cout << "Checked!!" <<std::endl;
       }

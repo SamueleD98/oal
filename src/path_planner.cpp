@@ -1,7 +1,7 @@
 #include "oal/path_planner.hpp"
 
 // Compute the path to reach the goal
-bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colregs, Path &path) {
+bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colregs, Path &path){
   path = Path();
   colregs_compliance = colregs;
   // Plot stuff
@@ -24,9 +24,9 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   Node goal, current;
   // Goal node setup
   goal.position = goal_position;
-
+  // Set obss local vxs
   FindObssLocalVxs(true);
-
+  // Plot stuff
   {
     plotWpsFile_ << "Time_" << 0 << std::endl;
     plotWpsFile_ << "Waypoint_" << v_info_.position.x() << "_" << v_info_.position.y() << std::endl;
@@ -35,9 +35,9 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
     }
   }
 
-  // Root node(s) setup
+  // Root node setup
   if (!RootSetup(goal_position, open_set)) return false;
-  // Initialize reachable with roots
+  // Initialize reachable with root
   reachable_full_set = open_set;
 
   // Run until every node is studied or a path is found
@@ -46,8 +46,11 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
     current = *open_set.begin();
     open_set.erase(open_set.begin());
 
-    if(open_set.size()>5000 && (open_set.size() % 10000 == 0)) {
+    if(open_set.size()>50000 && (open_set.size() % 10000 == 0)) {
       std::cout << "Number of nodes to analyze: " << open_set.size() << std::endl;
+      /*path.debug_flag = true;
+      found = true;
+      return true;*/
     }
 
     // Check if goal is reachable
@@ -148,14 +151,19 @@ bool path_planner::CheckFinal(const Node &start, Node goal, std::multiset<Node> 
       Node closer_collision;
       start.GetCloser(*collision_nodes, closer_collision);
       for (const auto &s_obs_ptr: *surrounding_obs) {
+        // If closer collision is with any of the surrounding obs
         if (s_obs_ptr.get() == closer_collision.obs_ptr.get()) {
-          Node new_node(TPoint({closer_collision.position, closer_collision.time}), s_obs_ptr, NA, start);
-          new_node.speed_to_it = speed;
-          new_node.is_final = true;
-          new_node.UpdateCosts(goal.position, GetHighestSpeed());
-          open_set.insert(new_node);
-          reachable_full_set.insert(new_node);
-          break;
+          // and if this new point is worth it (not too close)
+          if((closer_collision.position - start.position).norm() > acceptanceRadius){
+            // Add a new goal which can be the final one
+            Node new_node(TPoint({closer_collision.position, closer_collision.time}), s_obs_ptr, NA, start);
+            new_node.speed_to_it = speed;
+            new_node.is_final = true;
+            new_node.UpdateCosts(goal.position, GetHighestSpeed());
+            open_set.insert(new_node);
+            reachable_full_set.insert(new_node);
+            break;
+          }
         }
       }
     }else if (CheckCollision(start, goal)) {
@@ -223,6 +231,18 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
 // Check if the path between start and goal collide with any obstacle
 bool path_planner::CheckCollision(const Node &start, Node &goal,
                                   const std::shared_ptr<std::vector<Node>> &collision_points) {
+  /* Function returns true if path between start and goal crosses a bb.
+   *  Special situations arise when start and goal points belongs to obstacles bb:
+   *    if leaving from INSIDE an obs,
+   *      checks path do not cross any diagonal, ensuring no more damage can be done.
+   *    if going to an obs,
+   *      just check collision with every other obstacles since goal on goal_obs is safe by definition
+   *    if leaving from an obs,
+   *      do not check collision with start_obs sides with start_vx as one of the vx.
+   *        (goal not being inside a bb ensure path won't cross such sides)
+   *      check opposed diagonal for collision.
+   *        (it can go around an obs only by moving between consecutive vxs)
+  */
   Eigen::Vector3d start3d = Get3dPos(start);
   Eigen::Vector3d goal3d = Get3dPos(goal);
   // vehicle path to check for collision
@@ -231,14 +251,13 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
   //goal3d[2] = path.norm() / goal.speed_to_it;
   //path = goal3d - start3d;
 
-  if(start.vx == FL){
-    bool stop  =true;
-  }
 
-  // plot
-  plotCKFile_ << "---" << std::endl;
-  plotCKFile_ << "Start_" << start3d(0) << "_" << start3d(1) << "_" << start3d(2) << std::endl;
-  plotCKFile_ << "Goal_" << goal3d(0) << "_" << goal3d(1) << "_" << path.norm() / goal.speed_to_it << std::endl;
+  // Plot stuff
+  {
+    plotCKFile_ << "---" << std::endl;
+    plotCKFile_ << "Start_" << start3d(0) << "_" << start3d(1) << "_" << start3d(2) << std::endl;
+    plotCKFile_ << "Goal_" << goal3d(0) << "_" << goal3d(1) << "_" << path.norm() / goal.speed_to_it << std::endl;
+  }
 
   for (const obs_ptr &obs_ptr: obss_info_.obstacles) {
     Obstacle obs = *obs_ptr.get();
@@ -266,7 +285,7 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
 
     // Colregs check (ignore crossing from right TS)
     if (colregs_compliance) {
-      // Angle betweem
+      // Angle between
       double theta = GetBearing(Eigen::Vector2d(path.x(), path.y()), obs.head);
       if (theta > HeadOnAngle && theta < OvertakingAngle && !obs_ptr->higher_priority && obs_ptr->speed>0.01) {
         // crossing from right, stand on
@@ -274,10 +293,11 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
       }
     }
 
+    Eigen::Vector3d collision_point;
+
     // Starts in TS bb
     if (isDepartingObs && start.vx == NA) {
       // Check both diagonals
-      Eigen::Vector3d collision_point;
       if (FindLinePlaneIntersectionPoint(vxs_abs[FR], vxs_abs[RL], bb_direction, start, goal, collision_point)
           || FindLinePlaneIntersectionPoint(vxs_abs[FL], vxs_abs[RR], bb_direction, start, goal, collision_point)) {
         return false;
@@ -319,7 +339,6 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
         continue;
       }
 
-      Eigen::Vector3d collision_point;
       if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal,
                                          collision_point)) {
         // The desired path crosses the face of the bb defined by the two vxs and its direction
@@ -349,7 +368,6 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
         vx_idx2 = RR;
       }
 
-      Eigen::Vector3d collision_point;
       if (FindLinePlaneIntersectionPoint(vxs_abs[vx_idx1], vxs_abs[vx_idx2], bb_direction, start, goal,
                                          collision_point)) {
         return false;

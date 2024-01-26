@@ -53,6 +53,7 @@ private:
     // Order waypoints in a stack by going backward from the goal to start using the parent pointer attribute
     void BuildPath(Node &goal, Path &path);
 
+    // Compute local vxs depending on ownship position wrt each of them. If true is passed then add a pre-defined gap to vxs dimension
     void FindObssLocalVxs(bool with_uncertainty);
 
     double GetHighestSpeed(){

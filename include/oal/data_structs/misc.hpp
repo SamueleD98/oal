@@ -21,6 +21,7 @@ struct ObstaclesInfo {
 };
 
 struct Path {
+    bool debug_flag = false;
     std::stack<Node> waypoints;
     std::vector<std::string> overtakingObsList;
     std::vector<std::string> overtakenObsList;

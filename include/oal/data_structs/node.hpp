@@ -10,7 +10,7 @@
 #include "oal/data_structs/vertex.hpp"
 #include "oal/data_structs/obstacle.hpp"
 
-struct Metrics{
+/*struct Metrics{
     double n_ancestors = 0;
     double maxHeadingChange = 0;  // this should not start from zero if initial OS heading is known
     double totHeadingChange = 0;  // this should not start from zero if initial OS heading is known
@@ -18,7 +18,7 @@ struct Metrics{
     double totDistance = 0;
     double maxSpeed = 0;
     double maxSpeedChange = 0;
-};
+};*/
 
 class Node {
 public:
@@ -38,9 +38,9 @@ public:
 
     bool is_final = false;
 
-    bool hasSimilar = false;
+    //bool hasSimilar = false;
 
-    Metrics mtrcs;
+    //Metrics mtrcs;
 
 
     Node() = default;
@@ -59,13 +59,15 @@ public:
       costToReach = other.costToReach;
       costToGoal = other.costToGoal;
       costTotal = other.costTotal;
-      //vh_speed = other.vh_speed;
+      speed_to_it = other.speed_to_it;
       obs_ptr = other.obs_ptr;
       vx = other.vx;
       parent = other.parent;  // assuming that shared_ptr copy is what you want
       currentObsLimitedVxs = other.currentObsLimitedVxs;
       overtakingObsList = other.overtakingObsList;
-      mtrcs = other.mtrcs;
+      //mtrcs = other.mtrcs;
+      is_final = other.is_final;
+
       /*n_ancestors = other.n_ancestors;
       maxHeadingChange = other.maxHeadingChange;
       totHeadingChange = other.totHeadingChange;
@@ -129,10 +131,12 @@ public:
 
 
     double GetHeadingChange() {
-      if(parent->parent != nullptr){
-        Eigen::Vector2d t1 = position - parent->position;
-        Eigen::Vector2d t2 = parent->position - parent->parent->position;
-        return std::acos(t1.normalized().dot(t2.normalized())); // [0, pi]
+      if(parent != nullptr) {
+        if (parent->parent != nullptr) {
+          Eigen::Vector2d t1 = position - parent->position;
+          Eigen::Vector2d t2 = parent->position - parent->parent->position;
+          return std::acos(t1.normalized().dot(t2.normalized())); // [0, pi]
+        }
       }
       return 0; //TODO if starting heading is known, you can actually compute the heading change
     }
@@ -144,7 +148,7 @@ public:
       while (node.parent != nullptr) {
         std::cout << "   - time: " << node.time << "  Pos: " << node.position.x() << " " << node.position.y();
         if(node.obs_ptr != nullptr){
-          std::cout << "   Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  speed: " ;//<< node.vh_speed;
+          std::cout << "   Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  reaching speed: " << node.speed_to_it;
         }
         std::cout << std::endl;
         node = *node.parent;

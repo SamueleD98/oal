@@ -4,7 +4,7 @@
 void Node::UpdateCosts(const Eigen::Vector2d &goal, double highest_speed) {
   costToReach = time; //if the cost is the time to reach the target
   Eigen::Vector2d dist_to_goal = goal - position;
-  costToGoal = dist_to_goal.norm() / highest_speed;
+  costToGoal = dist_to_goal.norm() / highest_speed ; // TODO check rotation velocity and make it a param
   costTotal = costToReach + costToGoal;
 }
 
