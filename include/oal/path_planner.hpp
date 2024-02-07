@@ -6,6 +6,7 @@
 #include <memory>
 #include <stack>
 #include <set>
+#include <iomanip> //tables
 #include <eigen3/Eigen/Eigen>
 #include "oal/data_structs/misc.hpp"
 #include "oal/helper_functions.hpp"
@@ -13,13 +14,15 @@
 #define MAX_TIME 10000
 #define HeadOnAngle (15*(M_PI/180))
 #define OvertakingAngle (112*(M_PI/180))
-#define acceptanceRadius (5)
+//#define acceptanceRadius (5)
 
 class path_planner {
 private:
     VehicleInfo v_info_;
     ObstaclesInfo obss_info_;
     bool colregs_compliance;
+    double acceptanceRadius;
+
     std::vector<std::string> noCrossList;
 
     std::ofstream plotWpsFile_;
@@ -64,9 +67,10 @@ public:
     // vehicle start position and obstacles information are supposed to be taken in the same time instant.
     path_planner() = default;
 
-    path_planner(VehicleInfo v_info, const std::vector<Obstacle>& obstacles)
+    path_planner(VehicleInfo v_info, const std::vector<Obstacle>& obstacles, double acc_radius)
             : v_info_(std::move(v_info)) {
       colregs_compliance = false;
+      acceptanceRadius = acc_radius;
       for(const auto& obs : obstacles){
         obss_info_.obstacles.push_back(std::make_shared<Obstacle>(obs));
       }
@@ -92,6 +96,44 @@ public:
       obss_info_.obstacles.clear();
       for(const auto& obs : obstacles){
         obss_info_.obstacles.push_back(std::make_shared<Obstacle>(obs));
+      }
+    }
+
+    void SetAccRadius(double acc_radius){
+      acceptanceRadius = acc_radius;
+    }
+
+    void print(Eigen::Vector2d goal) const{
+      auto printVector = [](const std::vector<double>& vec, const std::string& sep = ",") {
+          auto last = vec.end() - 1;
+          for (auto it = vec.begin(); it != vec.end(); ++it) {
+            std::cout << *it;
+            if (it != last) {
+              std::cout << sep;
+            }
+          }
+      };
+
+      std::cout<< "-----------------------\n"
+               << " Vehicle data:\n"
+               << "  colregs = "<<colregs_compliance<<";\n"
+               << "  v_info.position = {"<<v_info_.position.x()<<", "<<v_info_.position.y()<<"};\n"
+               << "  v_info.heading = {"<<v_info_.heading<<"};\n"
+               << "  v_info.velocities = {"; printVector(v_info_.velocities) ; std::cout << "};\n"
+               << "  goal = {"<<goal.x()<<", "<<goal.y()<<"};\n"
+               << "  bb_data bb_dimension;\n";
+
+      for(const auto& obs: obss_info_.obstacles){
+        std::cout<< " bb_dimension = bb_data("<<obs->bb.dim_x<<", "<<obs->bb.dim_y<<", \n"
+                                             <<obs->bb.max_x_bow<<", "<<obs->bb.max_x_stern<<", \n"
+                                             <<obs->bb.max_y_starboard<<", "<<obs->bb.max_y_port<<", \n"
+                                             <<obs->bb.safety_x_bow<<", "<<obs->bb.safety_x_stern<<", \n"
+                                             <<obs->bb.safety_y_starboard<<", "<<obs->bb.safety_y_port<<", \n"
+                                             <<obs->bb.gap<<");\n";
+        std::cout<< " obstacles.push_back(Obstacle(\""<<obs->id<<"\", {"
+                                                     <<obs->position.x()<<", "<<obs->position.y()<<"}, "
+                                                     <<obs->head<<", "<<obs->speed<<", "<<obs->vel_dir<<", bb_dimension));\n";
+
       }
     }
 };

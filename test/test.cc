@@ -32,13 +32,16 @@ int main(int, char **) {
     //std::cout << "Which scenario?" << std::endl;
     //std::cin  >>  scenario;
 
-    scenario = 1;
+    scenario = 666;
+
     double n_obs = 10;
     double area_size= 500;
     v_info.velocities = generateRange(0.5, 1.5, 0.1);
     // Keep constants
     v_info.position = {10, 0};
     goal = {10, 250};
+
+    bool colregs;
 
     /* TODO scenario
      * one where the vehicle should stand on but the ts is limited and so fast os cannot reach the front vxs
@@ -50,12 +53,44 @@ int main(int, char **) {
 
       case 666:{
 
-        obstacles.push_back(Obstacle("1", {32.2, -34.4}, -0.00484, 0.49, -0.294, bb_dimension));
-        obstacles.push_back(Obstacle("2", {9.52, 7.08}, 1.45, 0.637, 1.52, bb_dimension));
+        colregs = 0;
+        v_info.position = {0.907, -2.01};
+        v_info.heading = {-1.22};
+        v_info.velocities = {1.5};
+        goal = {-49.4, -16};
+        bb_data bb_dimension;
+        bb_dimension = bb_data(5, 2,
+                               16, 6,
+                               6.5, 6.5,
+                               10.5, 4,
+                               4.5, 4.5,
+                               0.5);
+        obstacles.push_back(Obstacle("obs1", {-30, -10}, 0.301, 0, 0, bb_dimension));
 
-        v_info.position = {10, 0};
+/*
+        colregs = 0;
+        v_info.position = {-88.3, -45};
+        v_info.velocities = {1.5};
+        goal = {-109, -49.6};
 
-        goal = {10, 50};
+        bb_data bb_dimension;
+        bb_dimension = bb_data(10, 5,
+                               3.5, 2,
+                               2.5, 2.5,
+                               2.5, 1.5,
+                               1.5, 1.5,
+                               2);
+        obstacles.push_back(Obstacle("obs1", {-85.7, -38.7}, 0.301, 0.1, 0.301, bb_dimension));
+        bb_dimension = bb_data(10, 5,
+                               5.5, 2,
+                               2.5, 2.5,
+                               2.5, 1.5,
+                               1.5, 1.5,
+                               2);
+        obstacles.push_back(Obstacle("obs2", {-40, -82.1}, 1.57, 0.4, 1.57, bb_dimension));*/
+
+
+
         break;
 
 
@@ -197,9 +232,10 @@ int main(int, char **) {
         break;
     }
 
+    double ACC_RADIUS = 2;
 
-    path_planner planner1(v_info, obstacles);
-    path_planner planner2(v_info, obstacles);
+    path_planner planner1(v_info, obstacles, ACC_RADIUS);
+    path_planner planner2(v_info, obstacles, ACC_RADIUS);
 
     /*Path path1;
     std::cout << std::endl << "Colregs: false";
@@ -210,12 +246,18 @@ int main(int, char **) {
     }*/
 
     Path path2;
-    std::cout << std::endl << "Colregs: true"<< std::endl;
-    if (planner2.ComputePath(goal, true, path2)) {
+    std::cout << std::endl << "Colregs: "<<colregs<< std::endl;
+    if (planner2.ComputePath(goal, colregs, path2)) {
+      planner2.print(goal);
+      std::cout<<" planner done"<<std::endl;
+      path2.UpdateMetrics(v_info.position,0);
+      path2.print();
       if (path2.debug_flag){
         break;
       }
-      if (planner2.CheckPath(v_info.position, path2)) {
+      v_info.position.x() += 1;
+      v_info.position.y() += -1;
+      if (planner1.CheckPath(v_info.position, path2)) {
         std::cout << "Checked!!" <<std::endl;
       }
     } else {
@@ -223,7 +265,7 @@ int main(int, char **) {
     }
 
     // this after I'm done following the path (even a part of it)
-    auto priorOvertakenVesselsList = path2.overtakingObsList;
+    //auto priorOvertakenVesselsList = path2.overtakingObsList;
 
     /*int s_count = 0;
       double s_value = 0;

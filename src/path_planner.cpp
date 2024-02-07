@@ -82,7 +82,7 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
               continue;
             }
             // Save new node
-            new_node.UpdateCosts(goal_position, GetHighestSpeed());
+            new_node.UpdateCosts(goal_position, GetHighestSpeed(), v_info_.rot_speed);
             open_set.insert(new_node);
             reachable_full_set.insert(new_node);
            /* if (new_node.RemoveWorstDuplicates(reachable_full_set)) {
@@ -105,10 +105,10 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
   }
 
   if(!found || current.time == 0){
-    // No path found
+    // No path found OR GOAL == START
     if ( current.parent == nullptr) return false; // still in start
-    // TODO best estimate
-    std::cout << " NEW GOAL ";
+
+    std::cout << " oal search did not find any path, returning best estimate if any "<<std::endl;
     // Find the node with the smallest est. time to goal among the analyzed ones
     Node best_goal = current;
     while (!reachable_full_set.empty()) {
@@ -118,14 +118,15 @@ bool path_planner::ComputePath(const Eigen::Vector2d &goal_position, bool colreg
         best_goal = node;
       }
     }
-    if (best_goal.position == v_info_.position) return false; // new goal is starting point
+
+    if ((best_goal.position - v_info_.position).norm() < acceptanceRadius) return false; // new goal is starting point
     current = best_goal;
   }
 
-  current.print();
+  //current.print();
   BuildPath(current, path);
 
-  path.overtakingObsList = current.overtakingObsList;
+  //path.overtakingObsList = current.overtakingObsList;
   //std::cout << "count: " << current.parent.use_count() << std::endl;
   return true;
 }
@@ -159,7 +160,7 @@ bool path_planner::CheckFinal(const Node &start, Node goal, std::multiset<Node> 
             Node new_node(TPoint({closer_collision.position, closer_collision.time}), s_obs_ptr, NA, start);
             new_node.speed_to_it = speed;
             new_node.is_final = true;
-            new_node.UpdateCosts(goal.position, GetHighestSpeed());
+            new_node.UpdateCosts(goal.position, GetHighestSpeed(), v_info_.rot_speed);
             open_set.insert(new_node);
             reachable_full_set.insert(new_node);
             break;
@@ -170,7 +171,7 @@ bool path_planner::CheckFinal(const Node &start, Node goal, std::multiset<Node> 
       // From start with current speed, goal is reachable => add goal as node in open_set
       // TODO actually if speed is highest when this condition is verified, then this is best option, maybe optimize it
       goal.SetParent(start);
-      goal.UpdateCosts(goal.position, GetHighestSpeed());
+      goal.UpdateCosts(goal.position, GetHighestSpeed(), v_info_.rot_speed);
       open_set.insert(goal);
       reachable_full_set.insert(goal);
     }
@@ -184,6 +185,12 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
   if (!colregs_compliance || goal.obs_ptr->speed<=0.01) {
     return true;
   }
+
+  /*auto it = std::find(goal.overtakingObsList.begin(), goal.overtakingObsList.end(), goal.obs_ptr->id);
+  if( it != goal.overtakingObsList.end()){
+    // Moving to overtaking obs
+  }*/
+
   // Check only if moving between different obstacles
   if (start.obs_ptr.get() == goal.obs_ptr.get()) {
     // otherwise is compliant iff goal vx is not limited because of past maneuver
@@ -205,8 +212,10 @@ bool path_planner::CheckColreg(const Node &start, Node &goal) const {
     goal.currentObsLimitedVxs.push_back(FR);
   } else if (abs(theta) >= OvertakingAngle) {
     // overtaking
-    if (goal.vx == FR) goal.currentObsLimitedVxs.push_back(RR);
-    goal.overtakingObsList.push_back(goal.obs_ptr->id);
+    if (goal.vx == FR) {
+      goal.currentObsLimitedVxs.push_back(RR);
+    }
+    //goal.overtakingObsList.push_back(goal.obs_ptr->id);
     // avoid future crossings
   } else if (theta < 0) {
         // crossing from left, give way
@@ -289,18 +298,22 @@ bool path_planner::CheckCollision(const Node &start, Node &goal,
       double theta = GetBearing(Eigen::Vector2d(path.x(), path.y()), obs.head);
       if (theta > HeadOnAngle && theta < OvertakingAngle && !obs_ptr->higher_priority && obs_ptr->speed>0.01) {
         // crossing from right, stand on
+        goal.ignoring_obs_debug = true;
         continue;
       }
     }
 
     Eigen::Vector3d collision_point;
 
-    // Starts in TS bb
+    // Starts in TS bb and does NOT go to same obs
+    //if (isDepartingObs && start.vx == NA) {
     if (isDepartingObs && start.vx == NA) {
-      // Check both diagonals
-      if (FindLinePlaneIntersectionPoint(vxs_abs[FR], vxs_abs[RL], bb_direction, start, goal, collision_point)
-          || FindLinePlaneIntersectionPoint(vxs_abs[FL], vxs_abs[RR], bb_direction, start, goal, collision_point)) {
-        return false;
+      if(!isApproachingObs){
+        // Check both diagonals
+        if (FindLinePlaneIntersectionPoint(vxs_abs[FR], vxs_abs[RL], bb_direction, start, goal, collision_point)
+            || FindLinePlaneIntersectionPoint(vxs_abs[FL], vxs_abs[RR], bb_direction, start, goal, collision_point)) {
+          return false;
+        }
       }
       continue;
     }
@@ -424,6 +437,10 @@ bool path_planner::FindLinePlaneIntersectionPoint(Vertex vx1, Vertex vx2, const 
 }
 
 void path_planner::BuildPath(Node &current, Path &path) {    // Build path from goal to initial position
+  /*std::cout<<" Length: "<<path.metrics.totDistance<<" meters\n"
+           <<" Total course change: "<<path.metrics.totHeadingChange<<" radians\n"
+           <<" Max course change: "<<path.metrics.maxHeadingChange<<" radians"<<std::endl;*/
+
   // goal is supposed to have at least one root
   path.waypoints.push(current);
   {
@@ -451,6 +468,8 @@ void path_planner::BuildPath(Node &current, Path &path) {    // Build path from 
     ptr = current.parent;
   }
   while(ptr != nullptr);
+
+  // update path metrics in oal_interface
 }
 
 // Given some obstacle vertexes, find the intercept points
@@ -527,6 +546,7 @@ bool path_planner::IsInAnyBB(TPoint time_point,
 bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, Path path) {
   // the waypoint should be just the ones left to reach, not the whole path returned by the library
   if (path.empty()) {
+    std::cout<<" PATH IS EMPTY -> CHECK = FALSE"<<std::endl;
     return false;
   }
 
@@ -537,17 +557,27 @@ bool path_planner::CheckPath(const Eigen::Vector2d &vh_pos, Path path) {
   start.position = vh_pos;
   start.time = 0;
   //start.vh_speed = path.top().vh_speed;
+  // TODO temptative
+  start.obs_ptr = path.top().obs_ptr;
+  start.vx = path.top().vx;
+
+  Path temp = path;// temp
+
   path.pop();
 
-  colregs_compliance = false;
+  //colregs_compliance = false; //TODO should not change the value, otherwise ignoring obs (giving way) would be threat
   while (!path.empty()) {
     Node goal = path.top();
     goal.speed_to_it = path.top().speed_to_it;
     path.pop();
+    if(!CheckCollision(start, goal)){
+      std::cout<<" COLLISION WHILE CHECKING PATH: "<<std::endl;
+      temp.print(true);
+      std::cout<<" collision in checked path between ("<<start.position.x()<<", "<<start.position.y()<<") and ("<<goal.position.x()<<", "<<goal.position.y()<<") "<<std::endl;
+      return false;
+    }
 
-    if(!CheckCollision(start, goal)) return false;
-
-    start = goal; // TODO check =operator definition
+    start = Node(goal); // TODO check =operator definition, or if Node(other) is fine
   }
   return true;
 }
@@ -578,7 +608,8 @@ bool path_planner::RootSetup(const Eigen::Vector2d &goal_position, std::multiset
       return false;
     }*/
   }
-  root.UpdateCosts(goal_position, GetHighestSpeed());
+  root.starting_heading = v_info_.heading;
+  root.UpdateCosts(goal_position, GetHighestSpeed(), v_info_.rot_speed);
   open_set.insert(root);
   return true;
 }

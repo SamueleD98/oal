@@ -11,33 +11,28 @@ void Obstacle::SetSize(double dist_x, double dist_y, double theta,
   double bb_ratio_x_safety;
   double bb_ratio_y_safety;
 
-  bool x_safety;
-  bool y_safety;
-
   if (isAhead) {
     dim_x_stern = bb.dim_x / 2 * bb.max_x_stern;
     bb_ratio_x = bb.max_x_bow;
     bb_ratio_x_safety = bb.safety_x_bow;
-    x_safety = (dist_x <= bb.dim_x / 2 * bb.safety_x_bow);
   } else {
     dim_x_bow = bb.dim_x / 2 * bb.max_x_bow;
     bb_ratio_x = bb.max_x_stern;
     bb_ratio_x_safety = bb.safety_x_stern;
-    x_safety = (dist_x <= bb.dim_x / 2 * bb.safety_x_stern);
   }
 
   if (isStarboard) {
     dim_y_port = bb.dim_y / 2 * bb.max_y_port;
     bb_ratio_y = bb.max_y_starboard;
     bb_ratio_y_safety = bb.safety_y_starboard;
-    y_safety = (dist_y <= bb.dim_y / 2 * bb.safety_y_starboard);
   } else {
     dim_y_starboard = bb.dim_y / 2 * bb.max_y_starboard;
     bb_ratio_y = bb.max_y_port;
     bb_ratio_y_safety = bb.safety_y_port;
-    y_safety = (dist_y <= bb.dim_y / 2 * bb.safety_y_port);
   }
 
+  bool x_safety = (dist_x <= bb.dim_x / 2 * bb_ratio_x_safety);
+  bool y_safety = (dist_y <= bb.dim_y / 2 *bb_ratio_y_safety);
   bool x_max = (dist_x >= bb.dim_x / 2 * bb_ratio_x);
   bool y_max = (dist_y >= bb.dim_y / 2 * bb_ratio_y);
   bool x_between = !x_safety && !x_max;
@@ -71,11 +66,11 @@ void Obstacle::SetSize(double dist_x, double dist_y, double theta,
     dim_y_port = bb_dim_y;
   }
 
-  if(uncertainty){
-    dim_x_stern += bb.gap;
-    dim_x_bow += bb.gap;
-    dim_y_port += bb.gap;
-    dim_y_starboard += bb.gap;
+  if(!uncertainty){
+    dim_x_stern -= bb.gap;
+    dim_x_bow -= bb.gap;
+    dim_y_port -= bb.gap;
+    dim_y_starboard -= bb.gap;
   }
 }
 

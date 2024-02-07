@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
 
-log = open("/home/samuele/graal_ws/oal/build/WPlogC.txt", "r")
+log = open("/home/samuele/graal_ws/oal/build/CL_build/WPlogC.txt", "r")
 # log = open("log.txt", "r")
 Lines = log.readlines()
 data = {}
@@ -172,7 +172,7 @@ for timestamp in timeinstants:
         ax.text(centroid_x - dim_y*1.3* math.sin(heading), centroid_y + dim_y*1.3* math.cos(heading), polygon_data['obs'], ha='center', va='center', fontsize=10)
         ax.axis('equal')
         # ax.axis('square')
-        ax.set_xlim(8, 12)
+        #ax.set_xlim(8, 12)
         ax.set_aspect('equal')
 
 plt.show()

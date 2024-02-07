@@ -10,15 +10,7 @@
 #include "oal/data_structs/vertex.hpp"
 #include "oal/data_structs/obstacle.hpp"
 
-/*struct Metrics{
-    double n_ancestors = 0;
-    double maxHeadingChange = 0;  // this should not start from zero if initial OS heading is known
-    double totHeadingChange = 0;  // this should not start from zero if initial OS heading is known
-    double averageSpeed = 0;
-    double totDistance = 0;
-    double maxSpeed = 0;
-    double maxSpeedChange = 0;
-};*/
+
 
 class Node {
 public:
@@ -28,7 +20,6 @@ public:
     double costToReach = -1; //cost to reach the Node
     double costToGoal = -1; //estimated cost to reach Goal
     double costTotal = -1; //total cost
-    //double vh_speed = 0; //vehicle speed from this node to next
     double speed_to_it = 0;
     std::shared_ptr<Obstacle> obs_ptr = nullptr;
     vx_id vx = NA;
@@ -38,10 +29,11 @@ public:
 
     bool is_final = false;
 
-    //bool hasSimilar = false;
+    bool ignoring_obs_debug = false;
 
-    //Metrics mtrcs;
-
+    double starting_heading = 0;
+    double distFromParent = 0;
+    double courseChangeFromParent = 0;
 
     Node() = default;
 
@@ -65,16 +57,13 @@ public:
       parent = other.parent;  // assuming that shared_ptr copy is what you want
       currentObsLimitedVxs = other.currentObsLimitedVxs;
       overtakingObsList = other.overtakingObsList;
-      //mtrcs = other.mtrcs;
-      is_final = other.is_final;
 
-      /*n_ancestors = other.n_ancestors;
-      maxHeadingChange = other.maxHeadingChange;
-      totHeadingChange = other.totHeadingChange;
-      averageSpeed = other.averageSpeed;
-      totDistance = other.totDistance;
-      maxSpeed = other.maxSpeed;
-      maxSpeedChange = other.maxSpeedChange;*/
+      starting_heading = other.starting_heading;
+      distFromParent = other.distFromParent;
+      courseChangeFromParent = other.courseChangeFromParent;
+
+      ignoring_obs_debug = other.ignoring_obs_debug;
+      is_final = other.is_final;
     }
 
     // Used to order nodes in set according to total cost to reach the goal
@@ -92,7 +81,7 @@ public:
     }
 
     // Set estimated cost and total cost according to own ship speed
-    void UpdateCosts(const Eigen::Vector2d &goal, double highest_speed);
+    void UpdateCosts(const Eigen::Vector2d &goal, double highest_speed, double rot_speed);
 
     // Given some nodes, get the closer one
     void GetCloser(const std::vector<Node> &nodes_list, Node &closer) const;
@@ -115,38 +104,32 @@ public:
     void SetParent(const Node& parent_node) {
       parent = std::make_shared<Node>(parent_node);
       overtakingObsList = parent_node.overtakingObsList;
-      // Update mtrcs
-      /*double headingChange = GetHeadingChange(); // [0, pi]
-      double speedChange = vh_speed - parent->vh_speed;
-      double dist = (position - parent->position).norm();
-      // Alternative costs for when two nodes are the same (A* heuristic)
-      mtrcs.n_ancestors = parent->mtrcs.n_ancestors + 1;
-      mtrcs.totHeadingChange = parent->mtrcs.totHeadingChange + headingChange;
-      mtrcs.maxHeadingChange = std::max(parent->mtrcs.maxHeadingChange, headingChange);
-      mtrcs.maxSpeed = std::max(parent->mtrcs.maxSpeed, parent->vh_speed);
-      mtrcs.maxSpeedChange = std::max(parent->mtrcs.maxSpeedChange, abs(speedChange));  //TODO speedChange is also decelleration
-      mtrcs.totDistance = parent->mtrcs.totDistance + dist;
-      mtrcs.averageSpeed = (parent->mtrcs.averageSpeed * parent->mtrcs.totDistance + parent->vh_speed * dist) / mtrcs.totDistance;*/
-    }
 
+      distFromParent = (position - parent->position).norm();
+      courseChangeFromParent = GetHeadingChange();
+
+    }
 
     double GetHeadingChange() {
       if(parent != nullptr) {
+        Eigen::Vector2d t1 = position - parent->position;
         if (parent->parent != nullptr) {
-          Eigen::Vector2d t1 = position - parent->position;
           Eigen::Vector2d t2 = parent->position - parent->parent->position;
           return std::acos(t1.normalized().dot(t2.normalized())); // [0, pi]
+        }else{
+          return abs(parent->starting_heading - std::acos(t1.normalized().dot(Eigen::Vector2d(1,0))));
         }
       }
-      return 0; //TODO if starting heading is known, you can actually compute the heading change
+      return 0;
     }
 
     void print() const {
       std::cout << std::setprecision(3);
       Node node = *this;
-      if(node.parent != nullptr) std::cout <<std::endl << "  trace: "<<std::endl;
+      if(node.parent != nullptr) std::cout <<std::endl << "  Trace: "<<std::endl;
       while (node.parent != nullptr) {
         std::cout << "   - time: " << node.time << "  Pos: " << node.position.x() << " " << node.position.y();
+        if(ignoring_obs_debug) std::cout << "  !!! ignoring an obs for it is giving way: "<< std::endl;
         if(node.obs_ptr != nullptr){
           std::cout << "   Obs: " << node.obs_ptr->id << "/" << (vx_id) node.vx << "  reaching speed: " << node.speed_to_it;
         }

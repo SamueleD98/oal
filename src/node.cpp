@@ -1,11 +1,21 @@
 #include "oal/data_structs/node.hpp"
 #include "oal/helper_functions.hpp"
 
-void Node::UpdateCosts(const Eigen::Vector2d &goal, double highest_speed) {
+void Node::UpdateCosts(const Eigen::Vector2d &goal, double highest_speed, double rot_speed) {
   costToReach = time; //if the cost is the time to reach the target
   Eigen::Vector2d dist_to_goal = goal - position;
-  costToGoal = dist_to_goal.norm() / highest_speed ; // TODO check rotation velocity and make it a param
-  costTotal = costToReach + costToGoal;
+  costToGoal = dist_to_goal.norm() / highest_speed;
+
+  double rotation_wasted_time = 0;
+  if(rot_speed>0){
+    // The time contribution of a node is also:
+    //    - how much it takes to change course to reach this node
+    //    - how much it takes to change course to reach goal from this node
+    Eigen::Vector2d t1 = goal - position;
+    rotation_wasted_time = (GetHeadingChange() + std::acos(t1.normalized().dot(Eigen::Vector2d(1,0)))) / rot_speed;
+  }
+
+  costTotal = costToReach + costToGoal + rotation_wasted_time;
 }
 
 void Node::GetCloser(const std::vector<Node> &nodes_list, Node &closer) const {
